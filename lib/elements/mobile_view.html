@@ -1,0 +1,35 @@
+<dom-module id="mobile-view">
+    <style>
+
+    </style>
+    <template>
+        <template is="dom-if" if="{{!showForm}}">
+            <div>
+                <content select="coffee-chooser"></content>
+
+            </div>
+        </template>
+        <template is="dom-if" if="{{showForm}}">
+            <div>
+                <div>Order</div>
+                <content select="form"></content>
+            </div>
+        </template>
+        <content select="coffee-order-total"></content>
+        <template is="dom-if" if="{{showForm}}">
+            <span>
+              <content select="#place"></content>
+            </span>
+        </template>
+        <template is="dom-if" if="{{showForm}}">
+            <span>
+                <content select="#add-more"></content>
+            </span>
+        </template>
+        <template is="dom-if" if="{{!showForm}}">
+            <paper-button raised on-tap="verifyOrder">Show Order</paper-button>
+        </template>
+        <content select="#cancel"></content>
+    </template>
+    <script type="application/dart" src="mobile_view.dart"></script>
+</dom-module>

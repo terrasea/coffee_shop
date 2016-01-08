@@ -1,0 +1,39 @@
+<dom-module id="coffee-order">
+    <style>
+        :host {
+            display: block;
+
+        }
+        .bold div {
+            font-weight: bold;
+        }
+
+        .price {
+            text-align: right;
+        }
+
+        .total {
+            text-align: right;
+        }
+
+        .price-heading {
+            text-align: right;
+        }
+
+        .quantity {
+            text-align: right;
+        }
+
+        .quantity-heading {
+            text-align: right;
+        }
+    </style>
+    <template>
+        <iron-media-query query="(max-width: 600px)" query-matches="{{phoneScreen}}"></iron-media-query>
+        <div class="horizontal layout bold"><div class="flex one">Name</div><div class="flex one quantity-heading">Quantity</div><div class="flex one price-heading">Price</div></div>
+        <template is="dom-repeat" items="{{coffees}}" as="coffee">
+            <div class="horizontal layout coffee"><div class="flex">{{coffee.coffee.name}}</div><div class="flex quantity">{{coffee.quantity}}</div><div class="flex price">&pound;<span>{{coffee.price}}</span></div></div>
+        </template>
+    </template>
+    <script type="application/dart" src="coffee_order.dart"></script>
+</dom-module>
