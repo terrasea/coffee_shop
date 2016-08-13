@@ -21,7 +21,19 @@
     };
     cls.prototype = {p: {}};
     var object = new cls();
-    return object.__proto__ && object.__proto__.p === cls.prototype.p;
+    if (!(object.__proto__ && object.__proto__.p === cls.prototype.p))
+      return false;
+    try {
+      if (typeof navigator != "undefined" && typeof navigator.userAgent == "string" && navigator.userAgent.indexOf("Chrome/") >= 0)
+        return true;
+      if (typeof version == "function" && version.length == 0) {
+        var v = version();
+        if (/^\d+\.\d+\.\d+\.\d+$/.test(v))
+          return true;
+      }
+    } catch (_) {
+    }
+    return false;
   }();
   function map(x) {
     x = Object.create(null);
@@ -585,7 +597,7 @@
       }],
       noSuchMethod$1: ["super$Interceptor$noSuchMethod", function(receiver, invocation) {
         throw H.wrapException(P.NoSuchMethodError$(receiver, invocation.get$memberName(), invocation.get$positionalArguments(), invocation.get$namedArguments(), null));
-      }, null, "get$noSuchMethod", 2, 0, null, 4],
+      }],
       get$runtimeType: function(receiver) {
         return new H.TypeImpl(H.getRuntimeTypeString(receiver), null);
       },
@@ -618,9 +630,9 @@
       get$runtimeType: function(receiver) {
         return C.Type_Null_Yyn;
       },
-      noSuchMethod$1: [function(receiver, invocation) {
+      noSuchMethod$1: function(receiver, invocation) {
         return this.super$Interceptor$noSuchMethod(receiver, invocation);
-      }, null, "get$noSuchMethod", 2, 0, null, 4]
+      }
     },
     JavaScriptObject: {
       "^": "Interceptor;",
@@ -851,7 +863,7 @@
           t1 = receiver < 0 ? Math.ceil(receiver) : Math.floor(receiver);
           return t1 + 0;
         }
-        throw H.wrapException(new P.UnsupportedError("" + receiver));
+        throw H.wrapException(new P.UnsupportedError("" + receiver + ".toInt()"));
       },
       toString$0: function(receiver) {
         if (receiver === 0 && 1 / receiver < 0)
@@ -873,13 +885,24 @@
         return receiver - other;
       },
       $tdiv: function(receiver, other) {
-        if ((receiver | 0) === receiver && (other | 0) === other && 0 !== other && -1 !== other)
-          return receiver / other | 0;
-        else
-          return this.toInt$0(receiver / other);
+        if ((receiver | 0) === receiver)
+          if (other >= 1 || false)
+            return receiver / other | 0;
+        return this._tdivSlow$1(receiver, other);
       },
       _tdivFast$1: function(receiver, other) {
-        return (receiver | 0) === receiver ? receiver / other | 0 : this.toInt$0(receiver / other);
+        return (receiver | 0) === receiver ? receiver / other | 0 : this._tdivSlow$1(receiver, other);
+      },
+      _tdivSlow$1: function(receiver, other) {
+        var quotient = receiver / other;
+        if (quotient >= -2147483648 && quotient <= 2147483647)
+          return quotient | 0;
+        if (quotient > 0) {
+          if (quotient !== 1 / 0)
+            return Math.floor(quotient);
+        } else if (quotient > -1 / 0)
+          return Math.ceil(quotient);
+        throw H.wrapException(new P.UnsupportedError("Result of truncating division is " + H.S(quotient) + ": " + H.S(receiver) + " ~/ " + other));
       },
       $shl: function(receiver, other) {
         if (other < 0)
@@ -1180,7 +1203,7 @@
         case "error":
           throw H.wrapException(t1.$index(msg, "msg"));
       }
-    }, null, null, 4, 0, null, 10, 11],
+    }, null, null, 4, 0, null, 9, 10],
     IsolateNatives__log: function(msg) {
       var trace, t1, t2, exception;
       if (init.globalState.isWorker === true) {
@@ -1236,7 +1259,7 @@
         _Manager__serializePrintMessage: [function(object) {
           var t1 = P.LinkedHashMap__makeLiteral(["command", "print", "msg", object]);
           return new H._Serializer(true, P._LinkedIdentityHashMap__LinkedIdentityHashMap$es6(null, P.$int)).serialize$1(0, t1);
-        }, null, null, 2, 0, null, 9]
+        }, null, null, 2, 0, null, 8]
       }
     },
     _IsolateContext: {
@@ -1678,10 +1701,7 @@
       __isolate_helper$_add$1: function(dataEvent) {
         if (this._isClosed)
           return;
-        this._handler$1(dataEvent);
-      },
-      _handler$1: function(arg0) {
-        return this._handler.call$1(arg0);
+        this._handler.call$1(dataEvent);
       },
       $isRawReceivePort: 1
     },
@@ -1806,7 +1826,7 @@
         if (!(x instanceof P.Object))
           this.unsupported$1(x);
         return ["dart", init.classIdExtractor(x), this.serializeArrayInPlace$1(init.classFieldsExtractor(x))];
-      }, "call$1", "get$serialize", 2, 0, 0, 5],
+      }, "call$1", "get$serialize", 2, 0, 0, 4],
       unsupported$2: function(x, message) {
         throw H.wrapException(new P.UnsupportedError(H.S(message == null ? "Can't transmit:" : message) + " " + H.S(x)));
       },
@@ -1963,7 +1983,7 @@
           default:
             throw H.wrapException("couldn't deserialize: " + H.S(x));
         }
-      }, "call$1", "get$deserialize", 2, 0, 0, 5],
+      }, "call$1", "get$deserialize", 2, 0, 0, 4],
       deserializeArrayInPlace$1: function(x) {
         var t1, i, t2;
         t1 = J.getInterceptor$asx(x);
@@ -2390,7 +2410,7 @@
           return H._callInIsolate(isolate, new H.invokeClosure_closure3(closure, arg1, arg2, arg3, arg4));
       }
       throw H.wrapException(P.Exception_Exception("Unsupported number of arguments for wrapped closure"));
-    }, null, null, 14, 0, null, 12, 13, 14, 15, 16, 17, 18],
+    }, null, null, 14, 0, null, 11, 12, 13, 14, 15, 16, 17],
     convertDartClosureToJS: function(closure, arity) {
       var $function;
       if (closure == null)
@@ -3758,7 +3778,7 @@
       "^": "Closure:0;$this",
       call$1: [function(each) {
         return this.$this.$index(0, each);
-      }, null, null, 2, 0, null, 19, "call"]
+      }, null, null, 2, 0, null, 18, "call"]
     },
     LinkedHashMapCell: {
       "^": "Object;hashMapCellKey<,hashMapCellValue@,_next<,_previous<"
@@ -4112,7 +4132,7 @@
       moveNext$0: function() {
         var t1 = this._iterator;
         if (t1.moveNext$0()) {
-          this.__internal$_current = this._f$1(t1.get$current());
+          this.__internal$_current = this._f.call$1(t1.get$current());
           return true;
         }
         this.__internal$_current = null;
@@ -4120,9 +4140,6 @@
       },
       get$current: function() {
         return this.__internal$_current;
-      },
-      _f$1: function(arg0) {
-        return this._f.call$1(arg0);
       },
       $asIterator: function($S, $T) {
         return [$T];
@@ -4134,10 +4151,7 @@
         return J.get$length$asx(this._source);
       },
       elementAt$1: function(_, index) {
-        return this._f$1(J.elementAt$1$ax(this._source, index));
-      },
-      _f$1: function(arg0) {
-        return this._f.call$1(arg0);
+        return this._f.call$1(J.elementAt$1$ax(this._source, index));
       },
       $asListIterable: function($S, $T) {
         return [$T];
@@ -4158,16 +4172,14 @@
     WhereIterator: {
       "^": "Iterator;_iterator,_f",
       moveNext$0: function() {
-        for (var t1 = this._iterator; t1.moveNext$0();)
-          if (this._f$1(t1.get$current()) === true)
+        var t1, t2;
+        for (t1 = this._iterator, t2 = this._f; t1.moveNext$0();)
+          if (t2.call$1(t1.get$current()) === true)
             return true;
         return false;
       },
       get$current: function() {
         return this._iterator.get$current();
-      },
-      _f$1: function(arg0) {
-        return this._f.call$1(arg0);
       }
     },
     FixedLengthListMixin: {
@@ -4372,10 +4384,11 @@
     },
     Timer_Timer: function(duration, callback) {
       var t1 = $.Zone__current;
-      if (t1 === C.C__RootZone)
+      if (t1 === C.C__RootZone) {
+        t1.toString;
         return P.Timer__createTimer(duration, callback);
-      t1.toString;
-      return P.Timer__createTimer(duration, callback);
+      }
+      return P.Timer__createTimer(duration, t1.bindCallback$2$runGuarded(callback, true));
     },
     Timer__createTimer: function(duration, callback) {
       var milliseconds = C.JSInt_methods._tdivFast$1(duration._duration, 1000);
@@ -4474,7 +4487,7 @@
       "^": "Closure:0;bodyFunction",
       call$1: [function(result) {
         return this.bodyFunction.call$2(0, result);
-      }, null, null, 2, 0, null, 6, "call"]
+      }, null, null, 2, 0, null, 5, "call"]
     },
     _awaitOnObject_closure0: {
       "^": "Closure:10;bodyFunction",
@@ -4486,7 +4499,7 @@
       "^": "Closure:11;$protected",
       call$2: [function(errorCode, result) {
         this.$protected(errorCode, result);
-      }, null, null, 4, 0, null, 20, 6, "call"]
+      }, null, null, 4, 0, null, 19, 5, "call"]
     },
     Future: {
       "^": "Object;"
@@ -4849,7 +4862,7 @@
         var t1 = this.target;
         t1._clearPendingComplete$0();
         t1._complete$1(value);
-      }, null, null, 2, 0, null, 21, "call"]
+      }, null, null, 2, 0, null, 20, "call"]
     },
     _Future__chainForeignFuture_closure0: {
       "^": "Closure:12;target",
@@ -5001,14 +5014,14 @@
           hasNext._complete$1(true);
           return;
         }
-        J.pause$0$x(this._subscription);
+        this._subscription.pause$0(0);
         this._futureOrPrefetch = data;
         this._state = 3;
       }, "call$1", "get$_onData", 2, 0, function() {
         return H.computeSignature(function(T) {
           return {func: 1, v: true, args: [T]};
         }, this.$receiver, "_StreamIteratorImpl");
-      }, 22],
+      }, 21],
       _onError$2: [function(error, stackTrace) {
         var hasNext;
         if (this._state === 2) {
@@ -5017,7 +5030,7 @@
           hasNext._completeError$2(error, stackTrace);
           return;
         }
-        J.pause$0$x(this._subscription);
+        this._subscription.pause$0(0);
         this._futureOrPrefetch = new P.AsyncError(error, stackTrace);
         this._state = 4;
       }, function(error) {
@@ -5030,7 +5043,7 @@
           hasNext._complete$1(false);
           return;
         }
-        J.pause$0$x(this._subscription);
+        this._subscription.pause$0(0);
         this._futureOrPrefetch = null;
         this._state = 5;
       }, "call$0", "get$_onDone", 0, 0, 2]
@@ -5608,7 +5621,7 @@
         }
       }, function($receiver, start, end, iterable) {
         return this.setRange$4($receiver, start, end, iterable, 0);
-      }, "setRange$3", null, null, "get$setRange", 6, 2, null, 23],
+      }, "setRange$3", null, null, "get$setRange", 6, 2, null, 22],
       insertAll$2: function(receiver, index, iterable) {
         var insertionLength, t1;
         P.RangeError_checkValueInInterval(index, 0, this.get$length(receiver), "index", null);
@@ -6510,7 +6523,7 @@
     },
     HtmlElement: {
       "^": "Element;",
-      "%": "HTMLAppletElement|HTMLBRElement|HTMLCanvasElement|HTMLContentElement|HTMLDListElement|HTMLDataListElement|HTMLDetailsElement|HTMLDialogElement|HTMLDirectoryElement|HTMLDivElement|HTMLFontElement|HTMLFrameElement|HTMLHRElement|HTMLHeadElement|HTMLHeadingElement|HTMLHtmlElement|HTMLLIElement|HTMLLabelElement|HTMLLegendElement|HTMLLinkElement|HTMLMarqueeElement|HTMLMenuElement|HTMLMenuItemElement|HTMLMeterElement|HTMLModElement|HTMLOListElement|HTMLOptGroupElement|HTMLOptionElement|HTMLParagraphElement|HTMLPictureElement|HTMLPreElement|HTMLProgressElement|HTMLQuoteElement|HTMLScriptElement|HTMLShadowElement|HTMLSourceElement|HTMLSpanElement|HTMLStyleElement|HTMLTableCaptionElement|HTMLTableCellElement|HTMLTableColElement|HTMLTableDataCellElement|HTMLTableElement|HTMLTableHeaderCellElement|HTMLTableRowElement|HTMLTableSectionElement|HTMLTitleElement|HTMLTrackElement|HTMLUListElement|HTMLUnknownElement|PluginPlaceholderElement;HTMLElement;HtmlElement_PolymerMixin|HtmlElement_PolymerMixin_PolymerBase|PolymerElement|CoffeeChooser|PolymerElement_IronFormElementBehavior|CoffeeOrder|CoffeeCount|CoffeeOrderTotal|PolymerElement_IronResizableBehavior|CoffeeShop|DesktopView|MobileDesktop|MobileView|HtmlElement_CustomElementProxyMixin|HtmlElement_CustomElementProxyMixin_PolymerBase|ArraySelector|HtmlElement_CustomElementProxyMixin0|HtmlElement_CustomElementProxyMixin_PolymerBase0|IronAjax|HtmlElement_CustomElementProxyMixin1|HtmlElement_CustomElementProxyMixin_PolymerBase1|IronRequest|HtmlElement_CustomElementProxyMixin2|HtmlElement_CustomElementProxyMixin_PolymerBase2|IronIcon|HtmlElement_CustomElementProxyMixin3|HtmlElement_CustomElementProxyMixin_PolymerBase3|IronMediaQuery|HtmlElement_CustomElementProxyMixin4|HtmlElement_CustomElementProxyMixin_PolymerBase4|IronMeta|HtmlElement_CustomElementProxyMixin5|HtmlElement_CustomElementProxyMixin_PolymerBase5|IronMetaQuery|HtmlElement_CustomElementProxyMixin6|HtmlElement_CustomElementProxyMixin_PolymerBase6|HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior_IronSelectableBehavior|IronPages|HtmlElement_CustomElementProxyMixin7|HtmlElement_CustomElementProxyMixin_PolymerBase7|HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior_IronMultiSelectableBehavior|IronSelector|HtmlElement_CustomElementProxyMixin8|HtmlElement_CustomElementProxyMixin_PolymerBase8|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState_PaperRippleBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState_PaperRippleBehavior_PaperButtonBehavior|PaperButton|HtmlElement_CustomElementProxyMixin9|HtmlElement_CustomElementProxyMixin_PolymerBase9|PaperCard|HtmlElement_CustomElementProxyMixin10|HtmlElement_CustomElementProxyMixin_PolymerBase10|PaperMaterial|HtmlElement_CustomElementProxyMixin11|HtmlElement_CustomElementProxyMixin_PolymerBase11|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior0|PaperRipple"
+      "%": "HTMLAppletElement|HTMLBRElement|HTMLCanvasElement|HTMLContentElement|HTMLDListElement|HTMLDataListElement|HTMLDetailsElement|HTMLDialogElement|HTMLDirectoryElement|HTMLDivElement|HTMLFontElement|HTMLFrameElement|HTMLHRElement|HTMLHeadElement|HTMLHeadingElement|HTMLHtmlElement|HTMLLIElement|HTMLLabelElement|HTMLLegendElement|HTMLLinkElement|HTMLMarqueeElement|HTMLMenuElement|HTMLMenuItemElement|HTMLMeterElement|HTMLModElement|HTMLOListElement|HTMLOptGroupElement|HTMLOptionElement|HTMLParagraphElement|HTMLPictureElement|HTMLPreElement|HTMLProgressElement|HTMLQuoteElement|HTMLScriptElement|HTMLShadowElement|HTMLSourceElement|HTMLSpanElement|HTMLStyleElement|HTMLTableCaptionElement|HTMLTableCellElement|HTMLTableColElement|HTMLTableDataCellElement|HTMLTableElement|HTMLTableHeaderCellElement|HTMLTableRowElement|HTMLTableSectionElement|HTMLTitleElement|HTMLTrackElement|HTMLUListElement|HTMLUnknownElement|PluginPlaceholderElement;HTMLElement;HtmlElement_PolymerMixin|HtmlElement_PolymerMixin_PolymerBase|PolymerElement|CoffeeChooser|PolymerElement_IronFormElementBehavior|CoffeeOrder|CoffeeCount|CoffeeOrderTotal|PolymerElement_IronResizableBehavior|CoffeeShop|DesktopView|MobileDesktop|MobileView|HtmlElement_CustomElementProxyMixin|HtmlElement_CustomElementProxyMixin_PolymerBase|ArraySelector|HtmlElement_CustomElementProxyMixin0|HtmlElement_CustomElementProxyMixin_PolymerBase0|IronAjax|HtmlElement_CustomElementProxyMixin1|HtmlElement_CustomElementProxyMixin_PolymerBase1|IronRequest|HtmlElement_CustomElementProxyMixin2|HtmlElement_CustomElementProxyMixin_PolymerBase2|IronIcon|HtmlElement_CustomElementProxyMixin3|HtmlElement_CustomElementProxyMixin_PolymerBase3|IronImage|HtmlElement_CustomElementProxyMixin4|HtmlElement_CustomElementProxyMixin_PolymerBase4|IronMediaQuery|HtmlElement_CustomElementProxyMixin5|HtmlElement_CustomElementProxyMixin_PolymerBase5|IronMeta|HtmlElement_CustomElementProxyMixin6|HtmlElement_CustomElementProxyMixin_PolymerBase6|IronMetaQuery|HtmlElement_CustomElementProxyMixin7|HtmlElement_CustomElementProxyMixin_PolymerBase7|HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior_IronSelectableBehavior|IronPages|HtmlElement_CustomElementProxyMixin8|HtmlElement_CustomElementProxyMixin_PolymerBase8|HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior_IronMultiSelectableBehavior|IronSelector|HtmlElement_CustomElementProxyMixin9|HtmlElement_CustomElementProxyMixin_PolymerBase9|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState_PaperRippleBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState_PaperRippleBehavior_PaperButtonBehavior|PaperButton|HtmlElement_CustomElementProxyMixin10|HtmlElement_CustomElementProxyMixin_PolymerBase10|PaperCard|HtmlElement_CustomElementProxyMixin11|HtmlElement_CustomElementProxyMixin_PolymerBase11|PaperMaterial|HtmlElement_CustomElementProxyMixin12|HtmlElement_CustomElementProxyMixin_PolymerBase12|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior0|PaperRipple"
     },
     AnchorElement: {
       "^": "HtmlElement;target=",
@@ -6678,9 +6691,6 @@
     },
     MediaElement: {
       "^": "HtmlElement;error=",
-      pause$0: function(receiver) {
-        return receiver.pause();
-      },
       "%": "HTMLAudioElement|HTMLMediaElement|HTMLVideoElement"
     },
     MetaElement: {
@@ -7176,11 +7186,6 @@
     "^": ""
   }], ["dart.dom.web_sql", "dart:web_sql",, P, {
     "^": ""
-  }], ["dart.isolate", "dart:isolate",, P, {
-    "^": "",
-    Capability: {
-      "^": "Object;"
-    }
   }], ["dart.js", "dart:js",, P, {
     "^": "",
     _callDartFunction: [function(callback, captureThis, $self, $arguments) {
@@ -7192,7 +7197,7 @@
       }
       dartArgs = P.List_List$from(J.map$1$ax($arguments, P.js___convertToDart$closure()), true, null);
       return P._convertToJS(H.Primitives_applyFunctionWithPositionalArguments(callback, dartArgs));
-    }, null, null, 8, 0, null, 24, 25, 26, 27],
+    }, null, null, 8, 0, null, 23, 24, 25, 26],
     _defineProperty: function(o, $name, value) {
       var exception;
       try {
@@ -7224,7 +7229,7 @@
       if (!!t1.$isFunction)
         return P._getJsProxy(o, "$dart_jsFunction", new P._convertToJS_closure());
       return P._getJsProxy(o, "_$dart_jsObject", new P._convertToJS_closure0($.$get$_dartProxyCtor()));
-    }, "call$1", "js___convertToJS$closure", 2, 0, 0, 7],
+    }, "call$1", "js___convertToJS$closure", 2, 0, 0, 6],
     _getJsProxy: function(o, propertyName, createProxy) {
       var jsProxy = P._getOwnProperty(o, propertyName);
       if (jsProxy == null) {
@@ -7255,7 +7260,7 @@
         else
           return P._wrapToDart(o);
       }
-    }, "call$1", "js___convertToDart$closure", 2, 0, 16, 7],
+    }, "call$1", "js___convertToDart$closure", 2, 0, 16, 6],
     _wrapToDart: function(o) {
       if (typeof o == "function")
         return P._getDartProxy(o, $.$get$DART_CLOSURE_PROPERTY_NAME(), new P._wrapToDart_closure());
@@ -7878,7 +7883,7 @@
       "^": "Closure:0;",
       call$1: [function(i) {
         return new A.loadInitializers__closure(i);
-      }, null, null, 2, 0, null, 28, "call"]
+      }, null, null, 2, 0, null, 27, "call"]
     },
     loadInitializers__closure: {
       "^": "Closure:1;i",
@@ -7968,7 +7973,7 @@
                 throw exception;
           }
         }
-      }, null, null, 6, 0, null, 29, 30, 31, "call"]
+      }, null, null, 6, 0, null, 28, 29, 30, "call"]
     }
   }], ["polymer.lib.polymer_micro", "package:polymer/polymer_micro.dart",, N, {
     "^": "",
@@ -8116,10 +8121,13 @@
     HtmlElement_CustomElementProxyMixin_PolymerBase2: {
       "^": "HtmlElement_CustomElementProxyMixin2+PolymerBase;"
     }
-  }], ["polymer_elements.lib.src.iron_media_query.iron_media_query", "package:polymer_elements/iron_media_query.dart",, Q, {
+  }], ["polymer_elements.lib.src.iron_image.iron_image", "package:polymer_elements/iron_image.dart",, A, {
     "^": "",
-    IronMediaQuery: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase3;CustomElementProxyMixin__proxy"
+    IronImage: {
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase3;CustomElementProxyMixin__proxy",
+      get$error: function(receiver) {
+        return J.$index$asx(this.get$jsElement(receiver), "error");
+      }
     },
     HtmlElement_CustomElementProxyMixin3: {
       "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
@@ -8127,9 +8135,9 @@
     HtmlElement_CustomElementProxyMixin_PolymerBase3: {
       "^": "HtmlElement_CustomElementProxyMixin3+PolymerBase;"
     }
-  }], ["polymer_elements.lib.src.iron_meta.iron_meta", "package:polymer_elements/iron_meta.dart",, F, {
+  }], ["polymer_elements.lib.src.iron_media_query.iron_media_query", "package:polymer_elements/iron_media_query.dart",, Q, {
     "^": "",
-    IronMeta: {
+    IronMediaQuery: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase4;CustomElementProxyMixin__proxy"
     },
     HtmlElement_CustomElementProxyMixin4: {
@@ -8137,8 +8145,10 @@
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase4: {
       "^": "HtmlElement_CustomElementProxyMixin4+PolymerBase;"
-    },
-    IronMetaQuery: {
+    }
+  }], ["polymer_elements.lib.src.iron_meta.iron_meta", "package:polymer_elements/iron_meta.dart",, F, {
+    "^": "",
+    IronMeta: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase5;CustomElementProxyMixin__proxy"
     },
     HtmlElement_CustomElementProxyMixin5: {
@@ -8146,20 +8156,29 @@
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase5: {
       "^": "HtmlElement_CustomElementProxyMixin5+PolymerBase;"
-    }
-  }], ["polymer_elements.lib.src.iron_pages.iron_pages", "package:polymer_elements/iron_pages.dart",, U, {
-    "^": "",
-    IronPages: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior_IronSelectableBehavior;CustomElementProxyMixin__proxy"
+    },
+    IronMetaQuery: {
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase6;CustomElementProxyMixin__proxy"
     },
     HtmlElement_CustomElementProxyMixin6: {
       "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase6: {
       "^": "HtmlElement_CustomElementProxyMixin6+PolymerBase;"
+    }
+  }], ["polymer_elements.lib.src.iron_pages.iron_pages", "package:polymer_elements/iron_pages.dart",, U, {
+    "^": "",
+    IronPages: {
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior_IronSelectableBehavior;CustomElementProxyMixin__proxy"
+    },
+    HtmlElement_CustomElementProxyMixin7: {
+      "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
+    },
+    HtmlElement_CustomElementProxyMixin_PolymerBase7: {
+      "^": "HtmlElement_CustomElementProxyMixin7+PolymerBase;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase6+IronResizableBehavior;"
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase7+IronResizableBehavior;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior_IronSelectableBehavior: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior+IronSelectableBehavior;"
@@ -8184,14 +8203,14 @@
     IronSelector: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior_IronMultiSelectableBehavior;CustomElementProxyMixin__proxy"
     },
-    HtmlElement_CustomElementProxyMixin7: {
+    HtmlElement_CustomElementProxyMixin8: {
       "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
     },
-    HtmlElement_CustomElementProxyMixin_PolymerBase7: {
-      "^": "HtmlElement_CustomElementProxyMixin7+PolymerBase;"
+    HtmlElement_CustomElementProxyMixin_PolymerBase8: {
+      "^": "HtmlElement_CustomElementProxyMixin8+PolymerBase;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase7+IronSelectableBehavior;"
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase8+IronSelectableBehavior;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior_IronMultiSelectableBehavior: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior+IronMultiSelectableBehavior;"
@@ -8211,14 +8230,14 @@
     PaperButton: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState_PaperRippleBehavior_PaperButtonBehavior;CustomElementProxyMixin__proxy"
     },
-    HtmlElement_CustomElementProxyMixin8: {
+    HtmlElement_CustomElementProxyMixin9: {
       "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
     },
-    HtmlElement_CustomElementProxyMixin_PolymerBase8: {
-      "^": "HtmlElement_CustomElementProxyMixin8+PolymerBase;"
+    HtmlElement_CustomElementProxyMixin_PolymerBase9: {
+      "^": "HtmlElement_CustomElementProxyMixin9+PolymerBase;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase8+IronA11yKeysBehavior;"
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase9+IronA11yKeysBehavior;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior+IronButtonState;"
@@ -8235,17 +8254,6 @@
   }], ["polymer_elements.lib.src.paper_card.paper_card", "package:polymer_elements/paper_card.dart",, N, {
     "^": "",
     PaperCard: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase9;CustomElementProxyMixin__proxy"
-    },
-    HtmlElement_CustomElementProxyMixin9: {
-      "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
-    },
-    HtmlElement_CustomElementProxyMixin_PolymerBase9: {
-      "^": "HtmlElement_CustomElementProxyMixin9+PolymerBase;"
-    }
-  }], ["polymer_elements.lib.src.paper_material.paper_material", "package:polymer_elements/paper_material.dart",, S, {
-    "^": "",
-    PaperMaterial: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase10;CustomElementProxyMixin__proxy"
     },
     HtmlElement_CustomElementProxyMixin10: {
@@ -8253,6 +8261,17 @@
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase10: {
       "^": "HtmlElement_CustomElementProxyMixin10+PolymerBase;"
+    }
+  }], ["polymer_elements.lib.src.paper_material.paper_material", "package:polymer_elements/paper_material.dart",, S, {
+    "^": "",
+    PaperMaterial: {
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase11;CustomElementProxyMixin__proxy"
+    },
+    HtmlElement_CustomElementProxyMixin11: {
+      "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
+    },
+    HtmlElement_CustomElementProxyMixin_PolymerBase11: {
+      "^": "HtmlElement_CustomElementProxyMixin11+PolymerBase;"
     }
   }], ["polymer_elements.lib.src.paper_ripple.paper_ripple", "package:polymer_elements/paper_ripple.dart",, X, {
     "^": "",
@@ -8262,14 +8281,14 @@
         return J.$index$asx(this.get$jsElement(receiver), "target");
       }
     },
-    HtmlElement_CustomElementProxyMixin11: {
+    HtmlElement_CustomElementProxyMixin12: {
       "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
     },
-    HtmlElement_CustomElementProxyMixin_PolymerBase11: {
-      "^": "HtmlElement_CustomElementProxyMixin11+PolymerBase;"
+    HtmlElement_CustomElementProxyMixin_PolymerBase12: {
+      "^": "HtmlElement_CustomElementProxyMixin12+PolymerBase;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior0: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase11+IronA11yKeysBehavior;"
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase12+IronA11yKeysBehavior;"
     }
   }], ["polymer_interop.lib.src.convert", "package:polymer_interop/src/convert.dart",, E, {
     "^": "",
@@ -8366,7 +8385,7 @@
         return new F.CustomEventWrapper(jsValue);
       }
       return jsValue;
-    }, "call$1", "convert__convertToDart$closure", 2, 0, 0, 32],
+    }, "call$1", "convert__convertToDart$closure", 2, 0, 0, 31],
     _dartType: function(jsValue) {
       if (jsValue.$eq(0, $.$get$_String()))
         return C.Type_String_k8F;
@@ -8386,7 +8405,7 @@
       "^": "Closure:0;",
       call$1: [function(item) {
         return E.convertToJs(item);
-      }, null, null, 2, 0, null, 8, "call"]
+      }, null, null, 2, 0, null, 7, "call"]
     },
     convertToJs_closure0: {
       "^": "Closure:4;_box_0",
@@ -8398,7 +8417,7 @@
       "^": "Closure:0;",
       call$1: [function(item) {
         return E.convertToDart(item);
-      }, null, null, 2, 0, null, 8, "call"]
+      }, null, null, 2, 0, null, 7, "call"]
     }
   }], ["polymer_interop.src.custom_event_wrapper", "package:polymer_interop/src/custom_event_wrapper.dart",, F, {
     "^": "",
@@ -8723,9 +8742,6 @@
   J.map$1$ax = function(receiver, a0) {
     return J.getInterceptor$ax(receiver).map$1(receiver, a0);
   };
-  J.pause$0$x = function(receiver) {
-    return J.getInterceptor$x(receiver).pause$0(receiver);
-  };
   J.send$1$x = function(receiver, a0) {
     return J.getInterceptor$x(receiver).send$1(receiver, a0);
   };
@@ -8942,6 +8958,7 @@
   C.Type_IronAjax_0 = H.createRuntimeType("IronAjax");
   C.Type_IronForm_nbT = H.createRuntimeType("IronForm");
   C.Type_IronIcon_oSr = H.createRuntimeType("IronIcon");
+  C.Type_IronImage_k5o = H.createRuntimeType("IronImage");
   C.Type_IronMediaQuery_l2Z = H.createRuntimeType("IronMediaQuery");
   C.Type_IronMetaQuery_yuB = H.createRuntimeType("IronMetaQuery");
   C.Type_IronMeta_hin = H.createRuntimeType("IronMeta");
@@ -9110,7 +9127,7 @@
   }, "data"]);
   Isolate = Isolate.$finishIsolateConstructor(Isolate);
   $ = new Isolate();
-  init.metadata = ["error", "stackTrace", "_", null, "invocation", "x", "result", "o", "item", "object", "sender", "e", "closure", "isolate", "numberOfArguments", "arg1", "arg2", "arg3", "arg4", "each", "errorCode", "value", "data", 0, "callback", "captureThis", "self", "arguments", "i", "instance", "path", "newValue", "jsValue"];
+  init.metadata = ["error", "stackTrace", "_", null, "x", "result", "o", "item", "object", "sender", "e", "closure", "isolate", "numberOfArguments", "arg1", "arg2", "arg3", "arg4", "each", "errorCode", "value", "data", 0, "callback", "captureThis", "self", "arguments", "i", "instance", "path", "newValue", "jsValue"];
   init.types = [{func: 1, args: [,]}, {func: 1}, {func: 1, v: true}, {func: 1, v: true, args: [{func: 1, v: true}]}, {func: 1, args: [,,]}, {func: 1, ret: P.String, args: [P.$int]}, {func: 1, args: [P.String,,]}, {func: 1, args: [, P.String]}, {func: 1, args: [P.String]}, {func: 1, args: [{func: 1, v: true}]}, {func: 1, args: [, P.StackTrace]}, {func: 1, args: [P.$int,,]}, {func: 1, args: [,], opt: [,]}, {func: 1, v: true, args: [P.Object], opt: [P.StackTrace]}, {func: 1, args: [P.Symbol,,]}, {func: 1, args: [,,,]}, {func: 1, ret: P.Object, args: [,]}];
   function convertToFastObject(properties) {
     function MyClass() {

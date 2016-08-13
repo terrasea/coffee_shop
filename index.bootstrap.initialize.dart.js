@@ -21,7 +21,19 @@
     };
     cls.prototype = {p: {}};
     var object = new cls();
-    return object.__proto__ && object.__proto__.p === cls.prototype.p;
+    if (!(object.__proto__ && object.__proto__.p === cls.prototype.p))
+      return false;
+    try {
+      if (typeof navigator != "undefined" && typeof navigator.userAgent == "string" && navigator.userAgent.indexOf("Chrome/") >= 0)
+        return true;
+      if (typeof version == "function" && version.length == 0) {
+        var v = version();
+        if (/^\d+\.\d+\.\d+\.\d+$/.test(v))
+          return true;
+      }
+    } catch (_) {
+    }
+    return false;
   }();
   function map(x) {
     x = Object.create(null);
@@ -1011,7 +1023,7 @@
           t1 = receiver < 0 ? Math.ceil(receiver) : Math.floor(receiver);
           return t1 + 0;
         }
-        throw H.wrapException(new P.UnsupportedError("" + receiver));
+        throw H.wrapException(new P.UnsupportedError("" + receiver + ".toInt()"));
       },
       toStringAsFixed$1: function(receiver, fractionDigits) {
         var result;
@@ -1048,13 +1060,24 @@
         return receiver * other;
       },
       $tdiv: function(receiver, other) {
-        if ((receiver | 0) === receiver && (other | 0) === other && 0 !== other && -1 !== other)
-          return receiver / other | 0;
-        else
-          return this.toInt$0(receiver / other);
+        if ((receiver | 0) === receiver)
+          if (other >= 1 || false)
+            return receiver / other | 0;
+        return this._tdivSlow$1(receiver, other);
       },
       _tdivFast$1: function(receiver, other) {
-        return (receiver | 0) === receiver ? receiver / other | 0 : this.toInt$0(receiver / other);
+        return (receiver | 0) === receiver ? receiver / other | 0 : this._tdivSlow$1(receiver, other);
+      },
+      _tdivSlow$1: function(receiver, other) {
+        var quotient = receiver / other;
+        if (quotient >= -2147483648 && quotient <= 2147483647)
+          return quotient | 0;
+        if (quotient > 0) {
+          if (quotient !== 1 / 0)
+            return Math.floor(quotient);
+        } else if (quotient > -1 / 0)
+          return Math.ceil(quotient);
+        throw H.wrapException(new P.UnsupportedError("Result of truncating division is " + H.S(quotient) + ": " + H.S(receiver) + " ~/ " + other));
       },
       $shl: function(receiver, other) {
         if (other < 0)
@@ -2041,10 +2064,7 @@
       __isolate_helper$_add$1: function(dataEvent) {
         if (this._isClosed)
           return;
-        this._handler$1(dataEvent);
-      },
-      _handler$1: function(arg0) {
-        return this._handler.call$1(arg0);
+        this._handler.call$1(dataEvent);
       },
       $isRawReceivePort: 1
     },
@@ -2787,7 +2807,7 @@
           return H._callInIsolate(isolate, new H.invokeClosure_closure3(closure, arg1, arg2, arg3, arg4));
       }
       throw H.wrapException(P.Exception_Exception("Unsupported number of arguments for wrapped closure"));
-    }, null, null, 14, 0, null, 26, 27, 38, 20, 42, 23, 25],
+    }, null, null, 14, 0, null, 26, 27, 35, 20, 40, 23, 25],
     convertDartClosureToJS: function(closure, arity) {
       var $function;
       if (closure == null)
@@ -4546,7 +4566,7 @@
             this._updateCoffeeVals$1(receiver, coffeeVal);
             break;
         }
-      }, "call$2", "get$removeCoffee", 4, 0, 8, 29, 34],
+      }, "call$2", "get$removeCoffee", 4, 0, 8, 28, 30],
       resetChanged$2: [function(receiver, _, __) {
         if (receiver.$$CoffeeChooser__reset === true) {
           J.forEach$1$ax(this.get$coffeeVals(receiver), new S.CoffeeChooser_resetChanged_closure(receiver));
@@ -4597,7 +4617,7 @@
       "^": "Closure:0;$this",
       call$1: [function(key) {
         return P.LinkedHashMap__makeLiteral(["name", key, "image", J.get$coffees$x(this.$this).$index(0, key), "id", J.replaceAll$2$s(key, " ", ""), "count", 0, "price", C.JSInt_methods.toStringAsFixed$1(0, 2)]);
-      }, null, null, 2, 0, null, 47, "call"]
+      }, null, null, 2, 0, null, 44, "call"]
     },
     CoffeeChooser_selectCoffee_closure: {
       "^": "Closure:0;button",
@@ -4811,11 +4831,12 @@
         this.notifyPath$2(receiver, "coffees", t1);
       }, "call$2", "get$removeCoffee", 4, 0, 8, 3, 10],
       preprocessOrder$2: [function(receiver, e, d) {
-        var t1, obj;
+        var t1, obj, coffeeOrder;
         t1 = J.getInterceptor$x(e);
         P.print(H.interceptedTypeCast(J.$index$asx(J.get$jsElement$x(H.interceptedTypeCast(t1.get$currentTarget(e), "$isIronForm")), "request"), "$isIronAjax"));
         obj = H.interceptedTypeCast(J.get$jsElement$x(H.interceptedTypeCast(t1.get$currentTarget(e), "$isIronForm")).callMethod$2("serialize", []), "$isJsObject");
-        P.print(C.JsonCodec_null_null.decode$1(J.$index$asx(C.JsonCodec_null_null.decode$1(J.$index$asx($.$get$context(), "JSON").callMethod$2("stringify", [obj])), "order")));
+        coffeeOrder = J.map$1$ax(C.JsonCodec_null_null.decode$1(J.$index$asx(C.JsonCodec_null_null.decode$1(J.$index$asx($.$get$context(), "JSON").callMethod$2("stringify", [obj])), "order")), new V.CoffeeShop_preprocessOrder_closure()).toList$0(0);
+        window.alert(C.JsonCodec_null_null.encode$1(coffeeOrder));
         t1.preventDefault$0(e);
       }, "call$2", "get$preprocessOrder", 4, 0, 11, 3, 24],
       _parseToOrderCoffees$1: function(receiver, val) {
@@ -4883,6 +4904,12 @@
     },
     PolymerElement_IronResizableBehavior: {
       "^": "PolymerElement+IronResizableBehavior;"
+    },
+    CoffeeShop_preprocessOrder_closure: {
+      "^": "Closure:0;",
+      call$1: [function(item) {
+        return C.JsonCodec_null_null.decode$1(item);
+      }, null, null, 2, 0, null, 11, "call"]
     },
     CoffeeShop__parseToOrderCoffees_closure: {
       "^": "Closure:12;map",
@@ -5624,7 +5651,7 @@
       moveNext$0: function() {
         var t1 = this._iterator;
         if (t1.moveNext$0()) {
-          this.__internal$_current = this._f$1(t1.get$current());
+          this.__internal$_current = this._f.call$1(t1.get$current());
           return true;
         }
         this.__internal$_current = null;
@@ -5632,9 +5659,6 @@
       },
       get$current: function() {
         return this.__internal$_current;
-      },
-      _f$1: function(arg0) {
-        return this._f.call$1(arg0);
       },
       $asIterator: function($S, $T) {
         return [$T];
@@ -5646,10 +5670,7 @@
         return J.get$length$asx(this._source);
       },
       elementAt$1: function(_, index) {
-        return this._f$1(J.elementAt$1$ax(this._source, index));
-      },
-      _f$1: function(arg0) {
-        return this._f.call$1(arg0);
+        return this._f.call$1(J.elementAt$1$ax(this._source, index));
       },
       $asListIterable: function($S, $T) {
         return [$T];
@@ -5670,16 +5691,14 @@
     WhereIterator: {
       "^": "Iterator;_iterator,_f",
       moveNext$0: function() {
-        for (var t1 = this._iterator; t1.moveNext$0();)
-          if (this._f$1(t1.get$current()) === true)
+        var t1, t2;
+        for (t1 = this._iterator, t2 = this._f; t1.moveNext$0();)
+          if (t2.call$1(t1.get$current()) === true)
             return true;
         return false;
       },
       get$current: function() {
         return this._iterator.get$current();
-      },
-      _f$1: function(arg0) {
-        return this._f.call$1(arg0);
       }
     },
     FixedLengthListMixin: {
@@ -5908,10 +5927,11 @@
     },
     Timer_Timer: function(duration, callback) {
       var t1 = $.Zone__current;
-      if (t1 === C.C__RootZone)
+      if (t1 === C.C__RootZone) {
+        t1.toString;
         return P.Timer__createTimer(duration, callback);
-      t1.toString;
-      return P.Timer__createTimer(duration, callback);
+      }
+      return P.Timer__createTimer(duration, t1.bindCallback$2$runGuarded(callback, true));
     },
     Timer__createTimer: function(duration, callback) {
       var milliseconds = C.JSInt_methods._tdivFast$1(duration._duration, 1000);
@@ -6016,13 +6036,13 @@
       "^": "Closure:15;bodyFunction",
       call$2: [function(error, stackTrace) {
         this.bodyFunction.call$2(1, new H.ExceptionAndStackTrace(error, stackTrace));
-      }, null, null, 4, 0, null, 6, 7, "call"]
+      }, null, null, 4, 0, null, 7, 8, "call"]
     },
     _wrapJsFunctionForAsync_closure: {
       "^": "Closure:16;$protected",
       call$2: [function(errorCode, result) {
         this.$protected(errorCode, result);
-      }, null, null, 4, 0, null, 28, 18, "call"]
+      }, null, null, 4, 0, null, 29, 18, "call"]
     },
     Future: {
       "^": "Object;"
@@ -6227,7 +6247,7 @@
         this._state = 8;
         this._resultOrListeners = new P.AsyncError(error, stackTrace);
         P._Future__propagateToListeners(this, listeners);
-      }, null, "get$_completeError", 2, 2, null, 0, 6, 7],
+      }, null, "get$_completeError", 2, 2, null, 0, 7, 8],
       _asyncComplete$1: function(value) {
         var t1;
         if (!!J.getInterceptor(value).$isFuture) {
@@ -6385,7 +6405,7 @@
         var t1 = this.target;
         t1._clearPendingComplete$0();
         t1._complete$1(value);
-      }, null, null, 2, 0, null, 11, "call"]
+      }, null, null, 2, 0, null, 12, "call"]
     },
     _Future__chainForeignFuture_closure0: {
       "^": "Closure:17;target",
@@ -6393,7 +6413,7 @@
         this.target._completeError$2(error, stackTrace);
       }, function(error) {
         return this.call$2(error, null);
-      }, "call$1", null, null, null, 2, 2, null, 0, 6, 7, "call"]
+      }, "call$1", null, null, null, 2, 2, null, 0, 7, 8, "call"]
     },
     _Future__chainForeignFuture_closure1: {
       "^": "Closure:1;target,e,s",
@@ -6537,14 +6557,14 @@
           hasNext._complete$1(true);
           return;
         }
-        J.pause$0$x(this._subscription);
+        this._subscription.pause$0(0);
         this._futureOrPrefetch = data;
         this._state = 3;
       }, "call$1", "get$_onData", 2, 0, function() {
         return H.computeSignature(function(T) {
           return {func: 1, v: true, args: [T]};
         }, this.$receiver, "_StreamIteratorImpl");
-      }, 30],
+      }, 31],
       _onError$2: [function(error, stackTrace) {
         var hasNext;
         if (this._state === 2) {
@@ -6553,12 +6573,12 @@
           hasNext._completeError$2(error, stackTrace);
           return;
         }
-        J.pause$0$x(this._subscription);
+        this._subscription.pause$0(0);
         this._futureOrPrefetch = new P.AsyncError(error, stackTrace);
         this._state = 4;
       }, function(error) {
         return this._onError$2(error, null);
-      }, "_onError$1", "call$2", "call$1", "get$_onError", 2, 2, 18, 0, 6, 7],
+      }, "_onError$1", "call$2", "call$1", "get$_onError", 2, 2, 18, 0, 7, 8],
       _onDone$0: [function() {
         if (this._state === 2) {
           var hasNext = this._futureOrPrefetch;
@@ -6566,7 +6586,7 @@
           hasNext._complete$1(false);
           return;
         }
-        J.pause$0$x(this._subscription);
+        this._subscription.pause$0(0);
         this._futureOrPrefetch = null;
         this._state = 5;
       }, "call$0", "get$_onDone", 0, 0, 3]
@@ -7525,7 +7545,7 @@
         }
       }, function($receiver, start, end, iterable) {
         return this.setRange$4($receiver, start, end, iterable, 0);
-      }, "setRange$3", null, null, "get$setRange", 6, 2, null, 31],
+      }, "setRange$3", null, null, "get$setRange", 6, 2, null, 49],
       indexOf$2: function(receiver, element, startIndex) {
         var i;
         if (startIndex >= this.get$length(receiver))
@@ -8345,7 +8365,7 @@
           return;
         this._checkCycle$1(object);
         try {
-          customJson = this._toEncodable$1(object);
+          customJson = this._toEncodable.call$1(object);
           if (!this.writeJsonValue$1(customJson))
             throw H.wrapException(new P.JsonUnsupportedObjectError(object, null));
           t1 = this._seen;
@@ -8443,9 +8463,6 @@
         }
         t1._contents += "}";
         return true;
-      },
-      _toEncodable$1: function(arg0) {
-        return this._toEncodable.call$1(arg0);
       }
     },
     _JsonStringifier_writeMap_closure: {
@@ -9221,7 +9238,7 @@
     HtmlElement: {
       "^": "Element;",
       $isHtmlElement: 1,
-      "%": "HTMLAppletElement|HTMLBRElement|HTMLCanvasElement|HTMLContentElement|HTMLDListElement|HTMLDataListElement|HTMLDetailsElement|HTMLDialogElement|HTMLDirectoryElement|HTMLDivElement|HTMLFontElement|HTMLFrameElement|HTMLHRElement|HTMLHeadElement|HTMLHeadingElement|HTMLHtmlElement|HTMLLabelElement|HTMLLegendElement|HTMLLinkElement|HTMLMarqueeElement|HTMLMenuElement|HTMLMenuItemElement|HTMLModElement|HTMLOListElement|HTMLOptGroupElement|HTMLParagraphElement|HTMLPictureElement|HTMLPreElement|HTMLQuoteElement|HTMLScriptElement|HTMLShadowElement|HTMLSourceElement|HTMLSpanElement|HTMLStyleElement|HTMLTableCaptionElement|HTMLTableCellElement|HTMLTableColElement|HTMLTableDataCellElement|HTMLTableElement|HTMLTableHeaderCellElement|HTMLTableRowElement|HTMLTableSectionElement|HTMLTitleElement|HTMLTrackElement|HTMLUListElement|HTMLUnknownElement|PluginPlaceholderElement;HTMLElement;HtmlElement_PolymerMixin|HtmlElement_PolymerMixin_PolymerBase|PolymerElement|CoffeeChooser|PolymerElement_IronFormElementBehavior|CoffeeOrder|CoffeeCount|CoffeeOrderTotal|PolymerElement_IronResizableBehavior|CoffeeShop|DesktopView|MobileDesktop|MobileView|HtmlElement_CustomElementProxyMixin|HtmlElement_CustomElementProxyMixin_PolymerBase|ArraySelector|HtmlElement_CustomElementProxyMixin0|HtmlElement_CustomElementProxyMixin_PolymerBase0|IronAjax|HtmlElement_CustomElementProxyMixin1|HtmlElement_CustomElementProxyMixin_PolymerBase1|IronRequest|HtmlElement_CustomElementProxyMixin2|HtmlElement_CustomElementProxyMixin_PolymerBase2|IronIcon|HtmlElement_CustomElementProxyMixin3|HtmlElement_CustomElementProxyMixin_PolymerBase3|IronMediaQuery|HtmlElement_CustomElementProxyMixin4|HtmlElement_CustomElementProxyMixin_PolymerBase4|IronMeta|HtmlElement_CustomElementProxyMixin5|HtmlElement_CustomElementProxyMixin_PolymerBase5|IronMetaQuery|HtmlElement_CustomElementProxyMixin6|HtmlElement_CustomElementProxyMixin_PolymerBase6|HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior_IronSelectableBehavior|IronPages|HtmlElement_CustomElementProxyMixin7|HtmlElement_CustomElementProxyMixin_PolymerBase7|HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior_IronMultiSelectableBehavior|IronSelector|HtmlElement_CustomElementProxyMixin8|HtmlElement_CustomElementProxyMixin_PolymerBase8|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState_PaperRippleBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState_PaperRippleBehavior_PaperButtonBehavior|PaperButton|HtmlElement_CustomElementProxyMixin9|HtmlElement_CustomElementProxyMixin_PolymerBase9|PaperCard|HtmlElement_CustomElementProxyMixin10|HtmlElement_CustomElementProxyMixin_PolymerBase10|PaperMaterial|HtmlElement_CustomElementProxyMixin11|HtmlElement_CustomElementProxyMixin_PolymerBase11|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior0|PaperRipple"
+      "%": "HTMLAppletElement|HTMLBRElement|HTMLCanvasElement|HTMLContentElement|HTMLDListElement|HTMLDataListElement|HTMLDetailsElement|HTMLDialogElement|HTMLDirectoryElement|HTMLDivElement|HTMLFontElement|HTMLFrameElement|HTMLHRElement|HTMLHeadElement|HTMLHeadingElement|HTMLHtmlElement|HTMLLabelElement|HTMLLegendElement|HTMLLinkElement|HTMLMarqueeElement|HTMLMenuElement|HTMLMenuItemElement|HTMLModElement|HTMLOListElement|HTMLOptGroupElement|HTMLParagraphElement|HTMLPictureElement|HTMLPreElement|HTMLQuoteElement|HTMLScriptElement|HTMLShadowElement|HTMLSourceElement|HTMLSpanElement|HTMLStyleElement|HTMLTableCaptionElement|HTMLTableCellElement|HTMLTableColElement|HTMLTableDataCellElement|HTMLTableElement|HTMLTableHeaderCellElement|HTMLTableRowElement|HTMLTableSectionElement|HTMLTitleElement|HTMLTrackElement|HTMLUListElement|HTMLUnknownElement|PluginPlaceholderElement;HTMLElement;HtmlElement_PolymerMixin|HtmlElement_PolymerMixin_PolymerBase|PolymerElement|CoffeeChooser|PolymerElement_IronFormElementBehavior|CoffeeOrder|CoffeeCount|CoffeeOrderTotal|PolymerElement_IronResizableBehavior|CoffeeShop|DesktopView|MobileDesktop|MobileView|HtmlElement_CustomElementProxyMixin|HtmlElement_CustomElementProxyMixin_PolymerBase|ArraySelector|HtmlElement_CustomElementProxyMixin0|HtmlElement_CustomElementProxyMixin_PolymerBase0|IronAjax|HtmlElement_CustomElementProxyMixin1|HtmlElement_CustomElementProxyMixin_PolymerBase1|IronRequest|HtmlElement_CustomElementProxyMixin2|HtmlElement_CustomElementProxyMixin_PolymerBase2|IronIcon|HtmlElement_CustomElementProxyMixin3|HtmlElement_CustomElementProxyMixin_PolymerBase3|IronImage|HtmlElement_CustomElementProxyMixin4|HtmlElement_CustomElementProxyMixin_PolymerBase4|IronMediaQuery|HtmlElement_CustomElementProxyMixin5|HtmlElement_CustomElementProxyMixin_PolymerBase5|IronMeta|HtmlElement_CustomElementProxyMixin6|HtmlElement_CustomElementProxyMixin_PolymerBase6|IronMetaQuery|HtmlElement_CustomElementProxyMixin7|HtmlElement_CustomElementProxyMixin_PolymerBase7|HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior_IronSelectableBehavior|IronPages|HtmlElement_CustomElementProxyMixin8|HtmlElement_CustomElementProxyMixin_PolymerBase8|HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior_IronMultiSelectableBehavior|IronSelector|HtmlElement_CustomElementProxyMixin9|HtmlElement_CustomElementProxyMixin_PolymerBase9|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState_PaperRippleBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState_PaperRippleBehavior_PaperButtonBehavior|PaperButton|HtmlElement_CustomElementProxyMixin10|HtmlElement_CustomElementProxyMixin_PolymerBase10|PaperCard|HtmlElement_CustomElementProxyMixin11|HtmlElement_CustomElementProxyMixin_PolymerBase11|PaperMaterial|HtmlElement_CustomElementProxyMixin12|HtmlElement_CustomElementProxyMixin_PolymerBase12|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior0|PaperRipple"
     },
     AnchorElement: {
       "^": "HtmlElement;target=",
@@ -9342,7 +9359,7 @@
       detached$0: [function(receiver) {
       }, "call$0", "get$detached", 0, 0, 3],
       attributeChanged$3: [function(receiver, $name, oldValue, newValue) {
-      }, "call$3", "get$attributeChanged", 6, 0, 33, 49, 33, 19],
+      }, "call$3", "get$attributeChanged", 6, 0, 33, 33, 34, 19],
       toString$0: function(receiver) {
         return receiver.localName;
       },
@@ -9435,9 +9452,6 @@
     },
     MediaElement: {
       "^": "HtmlElement;error=",
-      pause$0: function(receiver) {
-        return receiver.pause();
-      },
       "%": "HTMLAudioElement|HTMLMediaElement|HTMLVideoElement"
     },
     MediaStream: {
@@ -9996,11 +10010,6 @@
     "^": ""
   }], ["dart.dom.web_sql", "dart:web_sql",, P, {
     "^": ""
-  }], ["dart.isolate", "dart:isolate",, P, {
-    "^": "",
-    Capability: {
-      "^": "Object;"
-    }
   }], ["dart.js", "dart:js",, P, {
     "^": "",
     _callDartFunction: [function(callback, captureThis, $self, $arguments) {
@@ -10012,7 +10021,7 @@
       }
       dartArgs = P.List_List$from(J.map$1$ax($arguments, P.js___convertToDart$closure()), true, null);
       return P._convertToJS(H.Primitives_applyFunctionWithPositionalArguments(callback, dartArgs));
-    }, null, null, 8, 0, null, 35, 36, 37, 5],
+    }, null, null, 8, 0, null, 36, 37, 38, 5],
     _defineProperty: function(o, $name, value) {
       var exception;
       try {
@@ -10044,7 +10053,7 @@
       if (!!t1.$isFunction)
         return P._getJsProxy(o, "$dart_jsFunction", new P._convertToJS_closure());
       return P._getJsProxy(o, "_$dart_jsObject", new P._convertToJS_closure0($.$get$_dartProxyCtor()));
-    }, "call$1", "js___convertToJS$closure", 2, 0, 0, 12],
+    }, "call$1", "js___convertToJS$closure", 2, 0, 0, 13],
     _getJsProxy: function(o, propertyName, createProxy) {
       var jsProxy = P._getOwnProperty(o, propertyName);
       if (jsProxy == null) {
@@ -10075,7 +10084,7 @@
         else
           return P._wrapToDart(o);
       }
-    }, "call$1", "js___convertToDart$closure", 2, 0, 32, 12],
+    }, "call$1", "js___convertToDart$closure", 2, 0, 32, 13],
     _wrapToDart: function(o) {
       if (typeof o == "function")
         return P._getDartProxy(o, $.$get$DART_CLOSURE_PROPERTY_NAME(), new P._wrapToDart_closure());
@@ -10195,7 +10204,7 @@
           return convertedList;
         } else
           return P._convertToJS(o);
-      }, null, null, 2, 0, null, 12, "call"]
+      }, null, null, 2, 0, null, 13, "call"]
     },
     JsFunction: {
       "^": "JsObject;_jsObject",
@@ -10716,7 +10725,7 @@
   }], ["", "index.bootstrap.initialize.dart",, M, {
     "^": "",
     main0: [function() {
-      $.$get$initializers().addAll$1(0, [H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_dPR, C.Type_ArraySelector_tRa), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_UoK, C.Type_DomBind_2GH), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_0, C.Type_DomIf_Rz5), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_FAV, C.Type_DomRepeat_EGl), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_bpf, C.Type_IronRequest_0Rd), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_ql0, C.Type_IronAjax_0), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_WR4, C.Type_IronForm_nbT), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_gc6, C.Type_PaperRipple_as9), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_wmT, C.Type_PaperMaterial_ouN), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_lic, C.Type_PaperButton_chs), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_MGR, C.Type_IronMediaQuery_l2Z), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_00, C.Type_PaperCard_woc), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_CBD, C.Type_IronSelector_6Hr), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_eNF, C.Type_IronMeta_hin), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_RA5, C.Type_IronMetaQuery_yuB), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_Ier, C.Type_IronIcon_oSr), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.PolymerRegister_PsM, C.Type_CoffeeCount_Uq4), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.PolymerRegister_1M5, C.Type_CoffeeChooser_KM3), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.PolymerRegister_s7h, C.Type_CoffeeOrder_wij), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.PolymerRegister_OrF, C.Type_CoffeeOrderTotal_WFv), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_qBh, C.Type_IronPages_Slt), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.PolymerRegister_Uqx, C.Type_MobileView_LLd), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.PolymerRegister_8Gl, C.Type_DesktopView_tx0), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.PolymerRegister_yqf, C.Type_MobileDesktop_qRH), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.PolymerRegister_KTQ, C.Type_CoffeeShop_wgH), [null])]);
+      $.$get$initializers().addAll$1(0, [H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_dPR, C.Type_ArraySelector_tRa), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_UoK, C.Type_DomBind_2GH), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_0, C.Type_DomIf_Rz5), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_FAV, C.Type_DomRepeat_EGl), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_bpf, C.Type_IronRequest_0Rd), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_ql0, C.Type_IronAjax_0), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_WR4, C.Type_IronForm_nbT), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_gc6, C.Type_PaperRipple_as9), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_wmT, C.Type_PaperMaterial_ouN), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_lic, C.Type_PaperButton_chs), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_MGR, C.Type_IronMediaQuery_l2Z), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_qBr, C.Type_IronImage_k5o), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_00, C.Type_PaperCard_woc), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_CBD, C.Type_IronSelector_6Hr), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_eNF, C.Type_IronMeta_hin), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_RA5, C.Type_IronMetaQuery_yuB), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_Ier, C.Type_IronIcon_oSr), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.PolymerRegister_PsM, C.Type_CoffeeCount_Uq4), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.PolymerRegister_1M5, C.Type_CoffeeChooser_KM3), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.PolymerRegister_s7h, C.Type_CoffeeOrder_wij), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.PolymerRegister_OrF, C.Type_CoffeeOrderTotal_WFv), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.CustomElementProxy_qBh, C.Type_IronPages_Slt), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.PolymerRegister_Uqx, C.Type_MobileView_LLd), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.PolymerRegister_8Gl, C.Type_DesktopView_tx0), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.PolymerRegister_yqf, C.Type_MobileDesktop_qRH), [null]), H.setRuntimeTypeInfo(new A.InitEntry(C.PolymerRegister_KTQ, C.Type_CoffeeShop_wgH), [null])]);
       $.data = $.$get$_data();
       return Y.main();
     }, "call$0", "index__main$closure", 0, 0, 1]
@@ -10867,7 +10876,7 @@
                 throw exception;
           }
         }
-      }, null, null, 6, 0, null, 40, 41, 19, "call"]
+      }, null, null, 6, 0, null, 41, 42, 19, "call"]
     }
   }], ["polymer.lib.polymer_micro", "package:polymer/polymer_micro.dart",, N, {
     "^": "",
@@ -10954,7 +10963,7 @@
       "^": "Closure:2;name",
       call$2: [function(dartInstance, value) {
         Q._InstanceMirrorImpl$(dartInstance, C.JsProxyReflectable_eZ8).invokeSetter$2(this.name, E.convertToDart(value));
-      }, null, null, 4, 0, null, 2, 11, "call"]
+      }, null, null, 4, 0, null, 2, 12, "call"]
     },
     _buildJsConstructorForType__closure1: {
       "^": "Closure:2;name",
@@ -10967,7 +10976,7 @@
       "^": "Closure:0;",
       call$1: [function(arg) {
         return E.convertToDart(arg);
-      }, null, null, 2, 0, null, 8, "call"]
+      }, null, null, 2, 0, null, 6, "call"]
     }
   }], ["polymer.lib.src.common.observe", "package:polymer/src/common/observe.dart",, E, {
     "^": "",
@@ -11399,7 +11408,7 @@
       "^": "Closure:0;",
       call$1: [function(arg) {
         return E.convertToDart(arg);
-      }, null, null, 2, 0, null, 8, "call"]
+      }, null, null, 2, 0, null, 6, "call"]
     },
     _reflectableMethodsFor_closure: {
       "^": "Closure:2;",
@@ -11436,7 +11445,7 @@
       "^": "Closure:0;",
       call$1: [function(arg) {
         return E.convertToDart(arg);
-      }, null, null, 2, 0, null, 8, "call"]
+      }, null, null, 2, 0, null, 6, "call"]
     },
     _setupRegistrationMethods_closure: {
       "^": "Closure:2;typeMirror,name",
@@ -11450,7 +11459,7 @@
       "^": "Closure:0;",
       call$1: [function(arg) {
         return E.convertToDart(arg);
-      }, null, null, 2, 0, null, 8, "call"]
+      }, null, null, 2, 0, null, 6, "call"]
     },
     _getPropertyInfoForType_closure: {
       "^": "Closure:0;",
@@ -11476,13 +11485,13 @@
         if (!behavior.get$hasBestEffortReflectedType())
           throw H.wrapException("Unable to get `bestEffortReflectedType` for behavior " + behavior.get$simpleName() + ".");
         return meta.getBehavior$1(behavior.get$bestEffortReflectedType());
-      }, null, null, 2, 0, null, 44, "call"]
+      }, null, null, 2, 0, null, 45, "call"]
     },
     _throwInvalidMixinOrder_closure: {
       "^": "Closure:0;",
       call$1: [function(clazz) {
         return clazz.get$simpleName();
-      }, null, null, 2, 0, null, 45, "call"]
+      }, null, null, 2, 0, null, 46, "call"]
     }
   }], ["polymer.src.template.array_selector", "package:polymer/src/template/array_selector.dart",, U, {
     "^": "",
@@ -11661,12 +11670,15 @@
     HtmlElement_CustomElementProxyMixin_PolymerBase2: {
       "^": "HtmlElement_CustomElementProxyMixin2+PolymerBase;"
     }
-  }], ["polymer_elements.lib.src.iron_media_query.iron_media_query", "package:polymer_elements/iron_media_query.dart",, Q, {
+  }], ["polymer_elements.lib.src.iron_image.iron_image", "package:polymer_elements/iron_image.dart",, A, {
     "^": "",
-    IronMediaQuery: {
+    IronImage: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase3;CustomElementProxyMixin__proxy",
+      get$error: function(receiver) {
+        return J.$index$asx(this.get$jsElement(receiver), "error");
+      },
       static: {
-        IronMediaQuery$created: function(receiver) {
+        IronImage$created: function(receiver) {
           receiver.toString;
           return receiver;
         }
@@ -11678,10 +11690,27 @@
     HtmlElement_CustomElementProxyMixin_PolymerBase3: {
       "^": "HtmlElement_CustomElementProxyMixin3+PolymerBase;"
     }
+  }], ["polymer_elements.lib.src.iron_media_query.iron_media_query", "package:polymer_elements/iron_media_query.dart",, Q, {
+    "^": "",
+    IronMediaQuery: {
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase4;CustomElementProxyMixin__proxy",
+      static: {
+        IronMediaQuery$created: function(receiver) {
+          receiver.toString;
+          return receiver;
+        }
+      }
+    },
+    HtmlElement_CustomElementProxyMixin4: {
+      "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
+    },
+    HtmlElement_CustomElementProxyMixin_PolymerBase4: {
+      "^": "HtmlElement_CustomElementProxyMixin4+PolymerBase;"
+    }
   }], ["polymer_elements.lib.src.iron_meta.iron_meta", "package:polymer_elements/iron_meta.dart",, F, {
     "^": "",
     IronMeta: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase4;CustomElementProxyMixin__proxy",
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase5;CustomElementProxyMixin__proxy",
       get$value: function(receiver) {
         return J.$index$asx(this.get$jsElement(receiver), "value");
       },
@@ -11702,14 +11731,14 @@
         }
       }
     },
-    HtmlElement_CustomElementProxyMixin4: {
+    HtmlElement_CustomElementProxyMixin5: {
       "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
     },
-    HtmlElement_CustomElementProxyMixin_PolymerBase4: {
-      "^": "HtmlElement_CustomElementProxyMixin4+PolymerBase;"
+    HtmlElement_CustomElementProxyMixin_PolymerBase5: {
+      "^": "HtmlElement_CustomElementProxyMixin5+PolymerBase;"
     },
     IronMetaQuery: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase5;CustomElementProxyMixin__proxy",
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase6;CustomElementProxyMixin__proxy",
       get$value: function(receiver) {
         return J.$index$asx(this.get$jsElement(receiver), "value");
       },
@@ -11730,11 +11759,11 @@
         }
       }
     },
-    HtmlElement_CustomElementProxyMixin5: {
+    HtmlElement_CustomElementProxyMixin6: {
       "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
     },
-    HtmlElement_CustomElementProxyMixin_PolymerBase5: {
-      "^": "HtmlElement_CustomElementProxyMixin5+PolymerBase;"
+    HtmlElement_CustomElementProxyMixin_PolymerBase6: {
+      "^": "HtmlElement_CustomElementProxyMixin6+PolymerBase;"
     }
   }], ["polymer_elements.lib.src.iron_pages.iron_pages", "package:polymer_elements/iron_pages.dart",, U, {
     "^": "",
@@ -11747,14 +11776,14 @@
         }
       }
     },
-    HtmlElement_CustomElementProxyMixin6: {
+    HtmlElement_CustomElementProxyMixin7: {
       "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
     },
-    HtmlElement_CustomElementProxyMixin_PolymerBase6: {
-      "^": "HtmlElement_CustomElementProxyMixin6+PolymerBase;"
+    HtmlElement_CustomElementProxyMixin_PolymerBase7: {
+      "^": "HtmlElement_CustomElementProxyMixin7+PolymerBase;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase6+IronResizableBehavior;"
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase7+IronResizableBehavior;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior_IronSelectableBehavior: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior+IronSelectableBehavior;"
@@ -11788,14 +11817,14 @@
         }
       }
     },
-    HtmlElement_CustomElementProxyMixin7: {
+    HtmlElement_CustomElementProxyMixin8: {
       "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
     },
-    HtmlElement_CustomElementProxyMixin_PolymerBase7: {
-      "^": "HtmlElement_CustomElementProxyMixin7+PolymerBase;"
+    HtmlElement_CustomElementProxyMixin_PolymerBase8: {
+      "^": "HtmlElement_CustomElementProxyMixin8+PolymerBase;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase7+IronSelectableBehavior;"
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase8+IronSelectableBehavior;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior_IronMultiSelectableBehavior: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior+IronMultiSelectableBehavior;"
@@ -11821,14 +11850,14 @@
         }
       }
     },
-    HtmlElement_CustomElementProxyMixin8: {
+    HtmlElement_CustomElementProxyMixin9: {
       "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
     },
-    HtmlElement_CustomElementProxyMixin_PolymerBase8: {
-      "^": "HtmlElement_CustomElementProxyMixin8+PolymerBase;"
+    HtmlElement_CustomElementProxyMixin_PolymerBase9: {
+      "^": "HtmlElement_CustomElementProxyMixin9+PolymerBase;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase8+IronA11yKeysBehavior;"
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase9+IronA11yKeysBehavior;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior+IronButtonState;"
@@ -11845,26 +11874,9 @@
   }], ["polymer_elements.lib.src.paper_card.paper_card", "package:polymer_elements/paper_card.dart",, N, {
     "^": "",
     PaperCard: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase9;CustomElementProxyMixin__proxy",
-      static: {
-        PaperCard$created: function(receiver) {
-          receiver.toString;
-          return receiver;
-        }
-      }
-    },
-    HtmlElement_CustomElementProxyMixin9: {
-      "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
-    },
-    HtmlElement_CustomElementProxyMixin_PolymerBase9: {
-      "^": "HtmlElement_CustomElementProxyMixin9+PolymerBase;"
-    }
-  }], ["polymer_elements.lib.src.paper_material.paper_material", "package:polymer_elements/paper_material.dart",, S, {
-    "^": "",
-    PaperMaterial: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase10;CustomElementProxyMixin__proxy",
       static: {
-        PaperMaterial$created: function(receiver) {
+        PaperCard$created: function(receiver) {
           receiver.toString;
           return receiver;
         }
@@ -11875,6 +11887,23 @@
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase10: {
       "^": "HtmlElement_CustomElementProxyMixin10+PolymerBase;"
+    }
+  }], ["polymer_elements.lib.src.paper_material.paper_material", "package:polymer_elements/paper_material.dart",, S, {
+    "^": "",
+    PaperMaterial: {
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase11;CustomElementProxyMixin__proxy",
+      static: {
+        PaperMaterial$created: function(receiver) {
+          receiver.toString;
+          return receiver;
+        }
+      }
+    },
+    HtmlElement_CustomElementProxyMixin11: {
+      "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
+    },
+    HtmlElement_CustomElementProxyMixin_PolymerBase11: {
+      "^": "HtmlElement_CustomElementProxyMixin11+PolymerBase;"
     }
   }], ["polymer_elements.lib.src.paper_ripple.paper_ripple", "package:polymer_elements/paper_ripple.dart",, X, {
     "^": "",
@@ -11890,14 +11919,14 @@
         }
       }
     },
-    HtmlElement_CustomElementProxyMixin11: {
+    HtmlElement_CustomElementProxyMixin12: {
       "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
     },
-    HtmlElement_CustomElementProxyMixin_PolymerBase11: {
-      "^": "HtmlElement_CustomElementProxyMixin11+PolymerBase;"
+    HtmlElement_CustomElementProxyMixin_PolymerBase12: {
+      "^": "HtmlElement_CustomElementProxyMixin12+PolymerBase;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior0: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase11+IronA11yKeysBehavior;"
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase12+IronA11yKeysBehavior;"
     }
   }], ["polymer_interop.lib.src.convert", "package:polymer_interop/src/convert.dart",, E, {
     "^": "",
@@ -11994,7 +12023,7 @@
         return new F.CustomEventWrapper(jsValue);
       }
       return jsValue;
-    }, "call$1", "convert__convertToDart$closure", 2, 0, 0, 46],
+    }, "call$1", "convert__convertToDart$closure", 2, 0, 0, 47],
     _dartType: function(jsValue) {
       if (jsValue.$eq(0, $.$get$_String()))
         return C.Type_String_k8F;
@@ -12014,7 +12043,7 @@
       "^": "Closure:0;",
       call$1: [function(item) {
         return E.convertToJs(item);
-      }, null, null, 2, 0, null, 13, "call"]
+      }, null, null, 2, 0, null, 11, "call"]
     },
     convertToJs_closure0: {
       "^": "Closure:2;_box_0",
@@ -12026,7 +12055,7 @@
       "^": "Closure:0;",
       call$1: [function(item) {
         return E.convertToDart(item);
-      }, null, null, 2, 0, null, 13, "call"]
+      }, null, null, 2, 0, null, 11, "call"]
     }
   }], ["polymer_interop.src.behavior", "package:polymer_interop/src/behavior.dart",, U, {
     "^": "",
@@ -12097,7 +12126,7 @@
         this.get$jsElement(receiver).callMethod$2("serializeValueToAttribute", [E.convertToJs(value), attribute, node]);
       }, function($receiver, value, attribute) {
         return this.serializeValueToAttribute$3($receiver, value, attribute, null);
-      }, "serializeValueToAttribute$2", "call$3", "call$2", "get$serializeValueToAttribute", 4, 2, 25, 0, 11, 48, 32],
+      }, "serializeValueToAttribute$2", "call$3", "call$2", "get$serializeValueToAttribute", 4, 2, 25, 0, 12, 48, 32],
       $set$2: function(receiver, path, value) {
         return this.get$jsElement(receiver).callMethod$2("set", [path, E.convertToJs(value)]);
       }
@@ -12269,7 +12298,7 @@
         for (t2 = this._typeToClassMirrorCache, t2 = t2.get$values(t2), t2 = t2.get$iterator(t2); t2.moveNext$0();) {
           classMirror = t2.get$current();
           if (classMirror instanceof Q.GenericClassMirrorImpl)
-            if (classMirror._isGenericRuntimeTypeOf$1(instance) === true)
+            if (classMirror._isGenericRuntimeTypeOf.call$1(instance) === true)
               return Q._createInstantiatedGenericClass(classMirror, t1.get$runtimeType(instance));
         }
         return;
@@ -12534,9 +12563,6 @@
       },
       toString$0: function(_) {
         return "GenericClassMirrorImpl(" + this.qualifiedName + ")";
-      },
-      _isGenericRuntimeTypeOf$1: function(arg0) {
-        return this._isGenericRuntimeTypeOf.call$1(arg0);
       },
       static: {
         GenericClassMirrorImpl$: function(simpleName, qualifiedName, descriptor, classIndex, reflector, declarationIndices, instanceMemberIndices, staticMemberIndices, superclassIndex, getters, setters, constructors, ownerIndex, mixinIndex, superinterfaceIndices, metadata, _isGenericRuntimeTypeOf, _typeVariableIndices, _dynamicReflectedTypeIndex) {
@@ -13835,9 +13861,6 @@
   J.matchAsPrefix$2$s = function(receiver, a0, a1) {
     return J.getInterceptor$s(receiver).matchAsPrefix$2(receiver, a0, a1);
   };
-  J.pause$0$x = function(receiver) {
-    return J.getInterceptor$x(receiver).pause$0(receiver);
-  };
   J.preventDefault$0$x = function(receiver) {
     return J.getInterceptor$x(receiver).preventDefault$0(receiver);
   };
@@ -13927,6 +13950,7 @@
   C.CustomElementProxy_gc6 = new X.CustomElementProxy("paper-ripple", null);
   C.CustomElementProxy_lic = new X.CustomElementProxy("paper-button", null);
   C.CustomElementProxy_qBh = new X.CustomElementProxy("iron-pages", null);
+  C.CustomElementProxy_qBr = new X.CustomElementProxy("iron-image", null);
   C.CustomElementProxy_ql0 = new X.CustomElementProxy("iron-ajax", null);
   C.CustomElementProxy_wmT = new X.CustomElementProxy("paper-material", null);
   C.Duration_0 = new P.Duration(0);
@@ -14239,6 +14263,7 @@
   C.Type_IronFormElementBehavior_IK6 = H.createRuntimeType("IronFormElementBehavior");
   C.Type_IronForm_nbT = H.createRuntimeType("IronForm");
   C.Type_IronIcon_oSr = H.createRuntimeType("IronIcon");
+  C.Type_IronImage_k5o = H.createRuntimeType("IronImage");
   C.Type_IronMediaQuery_l2Z = H.createRuntimeType("IronMediaQuery");
   C.Type_IronMetaQuery_yuB = H.createRuntimeType("IronMetaQuery");
   C.Type_IronMeta_hin = H.createRuntimeType("IronMeta");
@@ -14312,7 +14337,7 @@
   };
   init.deferredLibraryUris = {};
   init.deferredLibraryHashes = {};
-  init.typeToInterceptorMap = [C.Type_HtmlElement_cwF, W.HtmlElement, {}, C.Type_ArraySelector_tRa, U.ArraySelector, {created: U.ArraySelector$created}, C.Type_CoffeeChooser_KM3, S.CoffeeChooser, {created: S.CoffeeChooser$created}, C.Type_CoffeeCount_Uq4, A.CoffeeCount, {created: A.CoffeeCount$created}, C.Type_CoffeeOrderTotal_WFv, Q.CoffeeOrderTotal, {created: Q.CoffeeOrderTotal$created}, C.Type_CoffeeOrder_wij, F.CoffeeOrder, {created: F.CoffeeOrder$created}, C.Type_CoffeeShop_wgH, V.CoffeeShop, {created: V.CoffeeShop$created}, C.Type_CustomEvent_C11, W.CustomEvent, {}, C.Type_DesktopView_tx0, O.DesktopView, {created: O.DesktopView$created}, C.Type_DomBind_2GH, X.DomBind, {created: X.DomBind$created}, C.Type_DomIf_Rz5, M.DomIf, {created: M.DomIf$created}, C.Type_DomRepeat_EGl, Y.DomRepeat, {created: Y.DomRepeat$created}, C.Type_Element_O1c, W.Element, {}, C.Type_IronAjax_0, F.IronAjax, {created: F.IronAjax$created}, C.Type_IronForm_nbT, X.IronForm, {created: X.IronForm$created}, C.Type_IronIcon_oSr, O.IronIcon, {created: O.IronIcon$created}, C.Type_IronMediaQuery_l2Z, Q.IronMediaQuery, {created: Q.IronMediaQuery$created}, C.Type_IronMetaQuery_yuB, F.IronMetaQuery, {created: F.IronMetaQuery$created}, C.Type_IronMeta_hin, F.IronMeta, {created: F.IronMeta$created}, C.Type_IronPages_Slt, U.IronPages, {created: U.IronPages$created}, C.Type_IronRequest_0Rd, T.IronRequest, {created: T.IronRequest$created}, C.Type_IronSelector_6Hr, E.IronSelector, {created: E.IronSelector$created}, C.Type_MobileDesktop_qRH, G.MobileDesktop, {created: G.MobileDesktop$created}, C.Type_MobileView_LLd, L.MobileView, {created: L.MobileView$created}, C.Type_PaperButton_chs, K.PaperButton, {created: K.PaperButton$created}, C.Type_PaperCard_woc, N.PaperCard, {created: N.PaperCard$created}, C.Type_PaperMaterial_ouN, S.PaperMaterial, {created: S.PaperMaterial$created}, C.Type_PaperRipple_as9, X.PaperRipple, {created: X.PaperRipple$created}, C.Type_PolymerElement_QKd, N.PolymerElement, {created: N.PolymerElement$created}];
+  init.typeToInterceptorMap = [C.Type_HtmlElement_cwF, W.HtmlElement, {}, C.Type_ArraySelector_tRa, U.ArraySelector, {created: U.ArraySelector$created}, C.Type_CoffeeChooser_KM3, S.CoffeeChooser, {created: S.CoffeeChooser$created}, C.Type_CoffeeCount_Uq4, A.CoffeeCount, {created: A.CoffeeCount$created}, C.Type_CoffeeOrderTotal_WFv, Q.CoffeeOrderTotal, {created: Q.CoffeeOrderTotal$created}, C.Type_CoffeeOrder_wij, F.CoffeeOrder, {created: F.CoffeeOrder$created}, C.Type_CoffeeShop_wgH, V.CoffeeShop, {created: V.CoffeeShop$created}, C.Type_CustomEvent_C11, W.CustomEvent, {}, C.Type_DesktopView_tx0, O.DesktopView, {created: O.DesktopView$created}, C.Type_DomBind_2GH, X.DomBind, {created: X.DomBind$created}, C.Type_DomIf_Rz5, M.DomIf, {created: M.DomIf$created}, C.Type_DomRepeat_EGl, Y.DomRepeat, {created: Y.DomRepeat$created}, C.Type_Element_O1c, W.Element, {}, C.Type_IronAjax_0, F.IronAjax, {created: F.IronAjax$created}, C.Type_IronForm_nbT, X.IronForm, {created: X.IronForm$created}, C.Type_IronIcon_oSr, O.IronIcon, {created: O.IronIcon$created}, C.Type_IronImage_k5o, A.IronImage, {created: A.IronImage$created}, C.Type_IronMediaQuery_l2Z, Q.IronMediaQuery, {created: Q.IronMediaQuery$created}, C.Type_IronMetaQuery_yuB, F.IronMetaQuery, {created: F.IronMetaQuery$created}, C.Type_IronMeta_hin, F.IronMeta, {created: F.IronMeta$created}, C.Type_IronPages_Slt, U.IronPages, {created: U.IronPages$created}, C.Type_IronRequest_0Rd, T.IronRequest, {created: T.IronRequest$created}, C.Type_IronSelector_6Hr, E.IronSelector, {created: E.IronSelector$created}, C.Type_MobileDesktop_qRH, G.MobileDesktop, {created: G.MobileDesktop$created}, C.Type_MobileView_LLd, L.MobileView, {created: L.MobileView$created}, C.Type_PaperButton_chs, K.PaperButton, {created: K.PaperButton$created}, C.Type_PaperCard_woc, N.PaperCard, {created: N.PaperCard$created}, C.Type_PaperMaterial_ouN, S.PaperMaterial, {created: S.PaperMaterial$created}, C.Type_PaperRipple_as9, X.PaperRipple, {created: X.PaperRipple$created}, C.Type_PolymerElement_QKd, N.PolymerElement, {created: N.PolymerElement$created}];
   (function(lazies) {
     for (var i = 0; i < lazies.length;) {
       var fieldName = lazies[i++];
@@ -14442,7 +14467,7 @@
   }, "_doc"]);
   Isolate = Isolate.$finishIsolateConstructor(Isolate);
   $ = new Isolate();
-  init.metadata = [null, "_", "dartInstance", "e", "__", "arguments", "error", "stackTrace", "arg", "i", "coffee", "value", "o", "item", "object", "x", "each", "invocation", "result", "newValue", "arg1", "coffeeVal", "totalShown", "arg3", "d", "arg4", "closure", "isolate", "errorCode", "event", "data", 0, "node", "oldValue", "detail", "callback", "captureThis", "self", "numberOfArguments", "sender", "instance", "path", "arg2", "c", "behavior", "clazz", "jsValue", "key", "attribute", "name"];
+  init.metadata = [null, "_", "dartInstance", "e", "__", "arguments", "arg", "error", "stackTrace", "i", "coffee", "item", "value", "o", "object", "x", "each", "invocation", "result", "newValue", "arg1", "coffeeVal", "totalShown", "arg3", "d", "arg4", "closure", "isolate", "event", "errorCode", "detail", "data", "node", "name", "oldValue", "numberOfArguments", "callback", "captureThis", "self", "sender", "arg2", "instance", "path", "c", "key", "behavior", "clazz", "jsValue", "attribute", 0];
   init.types = [{func: 1, args: [,]}, {func: 1}, {func: 1, args: [,,]}, {func: 1, v: true}, {func: 1, v: true, opt: [,,]}, {func: 1, args: [P.String, O.DeclarationMirror]}, {func: 1, args: [P.String]}, {func: 1, v: true, args: [{func: 1, v: true}]}, {func: 1, v: true, args: [,,]}, {func: 1, ret: P.bool, args: [,]}, {func: 1, ret: P.String, args: [P.$int]}, {func: 1, v: true, args: [F.CustomEventWrapper,,]}, {func: 1, args: [X.Coffee]}, {func: 1, args: [P.String,,]}, {func: 1, args: [{func: 1, v: true}]}, {func: 1, args: [, P.StackTrace]}, {func: 1, args: [P.$int,,]}, {func: 1, args: [,], opt: [,]}, {func: 1, v: true, args: [P.Object], opt: [P.StackTrace]}, {func: 1, args: [P.Symbol,,]}, {func: 1, v: true, args: [W.CustomEvent,,]}, {func: 1, ret: P.bool, args: [O.ClassMirror]}, {func: 1, args: [,,,]}, {func: 1, args: [P.$double,,]}, {func: 1, args: [O.ClassMirror]}, {func: 1, v: true, args: [, P.String], opt: [W.Element]}, {func: 1, args: [P.$int]}, {func: 1, args: [T.ReflectCapability]}, {func: 1, args: [O.TypeMirror]}, {func: 1, v: true, args: [T.ReflectCapability]}, {func: 1, args: [, P.String]}, {func: 1, ret: P.$int, args: [P.Comparable, P.Comparable]}, {func: 1, ret: P.Object, args: [,]}, {func: 1, v: true, args: [P.String, P.String, P.String]}];
   function convertToFastObject(properties) {
     function MyClass() {

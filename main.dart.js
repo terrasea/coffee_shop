@@ -21,7 +21,19 @@
     };
     cls.prototype = {p: {}};
     var object = new cls();
-    return object.__proto__ && object.__proto__.p === cls.prototype.p;
+    if (!(object.__proto__ && object.__proto__.p === cls.prototype.p))
+      return false;
+    try {
+      if (typeof navigator != "undefined" && typeof navigator.userAgent == "string" && navigator.userAgent.indexOf("Chrome/") >= 0)
+        return true;
+      if (typeof version == "function" && version.length == 0) {
+        var v = version();
+        if (/^\d+\.\d+\.\d+\.\d+$/.test(v))
+          return true;
+      }
+    } catch (_) {
+    }
+    return false;
   }();
   function map(x) {
     x = Object.create(null);
@@ -585,7 +597,7 @@
       }],
       noSuchMethod$1: ["super$Interceptor$noSuchMethod", function(receiver, invocation) {
         throw H.wrapException(P.NoSuchMethodError$(receiver, invocation.get$memberName(), invocation.get$positionalArguments(), invocation.get$namedArguments(), null));
-      }, null, "get$noSuchMethod", 2, 0, null, 15],
+      }, null, "get$noSuchMethod", 2, 0, null, 14],
       get$runtimeType: function(receiver) {
         return new H.TypeImpl(H.getRuntimeTypeString(receiver), null);
       },
@@ -620,7 +632,7 @@
       },
       noSuchMethod$1: [function(receiver, invocation) {
         return this.super$Interceptor$noSuchMethod(receiver, invocation);
-      }, null, "get$noSuchMethod", 2, 0, null, 15]
+      }, null, "get$noSuchMethod", 2, 0, null, 14]
     },
     JavaScriptObject: {
       "^": "Interceptor;",
@@ -976,7 +988,7 @@
           t1 = receiver < 0 ? Math.ceil(receiver) : Math.floor(receiver);
           return t1 + 0;
         }
-        throw H.wrapException(new P.UnsupportedError("" + receiver));
+        throw H.wrapException(new P.UnsupportedError("" + receiver + ".toInt()"));
       },
       toStringAsFixed$1: function(receiver, fractionDigits) {
         var result;
@@ -1013,13 +1025,24 @@
         return receiver * other;
       },
       $tdiv: function(receiver, other) {
-        if ((receiver | 0) === receiver && (other | 0) === other && 0 !== other && -1 !== other)
-          return receiver / other | 0;
-        else
-          return this.toInt$0(receiver / other);
+        if ((receiver | 0) === receiver)
+          if (other >= 1 || false)
+            return receiver / other | 0;
+        return this._tdivSlow$1(receiver, other);
       },
       _tdivFast$1: function(receiver, other) {
-        return (receiver | 0) === receiver ? receiver / other | 0 : this.toInt$0(receiver / other);
+        return (receiver | 0) === receiver ? receiver / other | 0 : this._tdivSlow$1(receiver, other);
+      },
+      _tdivSlow$1: function(receiver, other) {
+        var quotient = receiver / other;
+        if (quotient >= -2147483648 && quotient <= 2147483647)
+          return quotient | 0;
+        if (quotient > 0) {
+          if (quotient !== 1 / 0)
+            return Math.floor(quotient);
+        } else if (quotient > -1 / 0)
+          return Math.ceil(quotient);
+        throw H.wrapException(new P.UnsupportedError("Result of truncating division is " + H.S(quotient) + ": " + H.S(receiver) + " ~/ " + other));
       },
       $shl: function(receiver, other) {
         if (other < 0)
@@ -1492,7 +1515,7 @@
         case "error":
           throw H.wrapException(t1.$index(msg, "msg"));
       }
-    }, null, null, 4, 0, null, 25, 3],
+    }, null, null, 4, 0, null, 28, 3],
     IsolateNatives__log: function(msg) {
       var trace, t1, t2, exception;
       if (init.globalState.isWorker === true) {
@@ -1548,7 +1571,7 @@
         _Manager__serializePrintMessage: [function(object) {
           var t1 = P.LinkedHashMap__makeLiteral(["command", "print", "msg", object]);
           return new H._Serializer(true, P._LinkedIdentityHashMap__LinkedIdentityHashMap$es6(null, P.$int)).serialize$1(0, t1);
-        }, null, null, 2, 0, null, 17]
+        }, null, null, 2, 0, null, 15]
       }
     },
     _IsolateContext: {
@@ -1990,10 +2013,7 @@
       __isolate_helper$_add$1: function(dataEvent) {
         if (this._isClosed)
           return;
-        this._handler$1(dataEvent);
-      },
-      _handler$1: function(arg0) {
-        return this._handler.call$1(arg0);
+        this._handler.call$1(dataEvent);
       },
       $isRawReceivePort: 1
     },
@@ -2118,7 +2138,7 @@
         if (!(x instanceof P.Object))
           this.unsupported$1(x);
         return ["dart", init.classIdExtractor(x), this.serializeArrayInPlace$1(init.classFieldsExtractor(x))];
-      }, "call$1", "get$serialize", 2, 0, 0, 18],
+      }, "call$1", "get$serialize", 2, 0, 0, 16],
       unsupported$2: function(x, message) {
         throw H.wrapException(new P.UnsupportedError(H.S(message == null ? "Can't transmit:" : message) + " " + H.S(x)));
       },
@@ -2275,7 +2295,7 @@
           default:
             throw H.wrapException("couldn't deserialize: " + H.S(x));
         }
-      }, "call$1", "get$deserialize", 2, 0, 0, 18],
+      }, "call$1", "get$deserialize", 2, 0, 0, 16],
       deserializeArrayInPlace$1: function(x) {
         var t1, i, t2;
         t1 = J.getInterceptor$asx(x);
@@ -2736,7 +2756,7 @@
           return H._callInIsolate(isolate, new H.invokeClosure_closure3(closure, arg1, arg2, arg3, arg4));
       }
       throw H.wrapException(P.Exception_Exception("Unsupported number of arguments for wrapped closure"));
-    }, null, null, 14, 0, null, 26, 27, 45, 47, 42, 38, 34],
+    }, null, null, 14, 0, null, 26, 25, 27, 47, 30, 40, 43],
     convertDartClosureToJS: function(closure, arity) {
       var $function;
       if (closure == null)
@@ -4168,7 +4188,7 @@
       "^": "Closure:0;$this",
       call$1: [function(each) {
         return this.$this.$index(0, each);
-      }, null, null, 2, 0, null, 13, "call"]
+      }, null, null, 2, 0, null, 17, "call"]
     },
     LinkedHashMapCell: {
       "^": "Object;hashMapCellKey<,hashMapCellValue@,_next<,_previous<"
@@ -4470,7 +4490,7 @@
         t1.$indexSet(coffeeVal, "count", J.$add$ns(t1.$index(coffeeVal, "count"), 1));
         this.fire$2$detail(receiver, "add-coffee", X.Coffee_Coffee(t1.$index(coffeeVal, "name")));
         this._updateCoffeeVals$1(receiver, coffeeVal);
-      }, "call$2", "get$selectCoffee", 4, 0, 11, 3, 14],
+      }, "call$2", "get$selectCoffee", 4, 0, 11, 3, 13],
       _updateCoffeeVals$1: function(receiver, coffeeVal) {
         var pos, t1;
         pos = J.indexOf$1$asx(this.get$coffeeVals(receiver), coffeeVal);
@@ -4495,7 +4515,7 @@
             this._updateCoffeeVals$1(receiver, coffeeVal);
             break;
         }
-      }, "call$2", "get$removeCoffee", 4, 0, 6, 29, 23],
+      }, "call$2", "get$removeCoffee", 4, 0, 6, 24, 23],
       resetChanged$2: [function(receiver, _, __) {
         if (receiver.$$CoffeeChooser__reset === true) {
           J.forEach$1$ax(this.get$coffeeVals(receiver), new S.CoffeeChooser_resetChanged_closure(receiver));
@@ -4512,7 +4532,7 @@
       "^": "Closure:0;",
       call$1: [function(c) {
         return c.get$simpleName();
-      }, null, null, 2, 0, null, 19, "call"]
+      }, null, null, 2, 0, null, 35, "call"]
     },
     CoffeeChooser_coffees_closure0: {
       "^": "Closure:5;",
@@ -4728,13 +4748,14 @@
         this.notifyPath$2(receiver, "coffees", t1);
       }, "call$2", "get$removeCoffee", 4, 0, 6, 3, 7],
       preprocessOrder$2: [function(receiver, e, d) {
-        var t1, obj;
+        var t1, obj, coffeeOrder;
         t1 = J.getInterceptor$x(e);
         P.print(H.interceptedTypeCast(J.$index$asx(J.get$jsElement$x(H.interceptedTypeCast(t1.get$currentTarget(e), "$isIronForm")), "request"), "$isIronAjax"));
         obj = H.interceptedTypeCast(J.get$jsElement$x(H.interceptedTypeCast(t1.get$currentTarget(e), "$isIronForm")).callMethod$2("serialize", []), "$isJsObject");
-        P.print(C.JsonCodec_null_null.decode$1(J.$index$asx(C.JsonCodec_null_null.decode$1(J.$index$asx($.$get$context(), "JSON").callMethod$2("stringify", [obj])), "order")));
+        coffeeOrder = J.map$1$ax(C.JsonCodec_null_null.decode$1(J.$index$asx(C.JsonCodec_null_null.decode$1(J.$index$asx($.$get$context(), "JSON").callMethod$2("stringify", [obj])), "order")), new V.CoffeeShop_preprocessOrder_closure()).toList$0(0);
+        window.alert(C.JsonCodec_null_null.encode$1(coffeeOrder));
         t1.preventDefault$0(e);
-      }, "call$2", "get$preprocessOrder", 4, 0, 14, 3, 24],
+      }, "call$2", "get$preprocessOrder", 4, 0, 14, 3, 19],
       _parseToOrderCoffees$1: function(receiver, val) {
         var map, t1;
         map = P.LinkedHashMap__makeEmpty();
@@ -4788,6 +4809,12 @@
     },
     PolymerElement_IronResizableBehavior: {
       "^": "PolymerElement+IronResizableBehavior;"
+    },
+    CoffeeShop_preprocessOrder_closure: {
+      "^": "Closure:0;",
+      call$1: [function(item) {
+        return C.JsonCodec_null_null.decode$1(item);
+      }, null, null, 2, 0, null, 8, "call"]
     },
     CoffeeShop__parseToOrderCoffees_closure: {
       "^": "Closure:15;map",
@@ -5493,7 +5520,7 @@
       moveNext$0: function() {
         var t1 = this._iterator;
         if (t1.moveNext$0()) {
-          this.__internal$_current = this._f$1(t1.get$current());
+          this.__internal$_current = this._f.call$1(t1.get$current());
           return true;
         }
         this.__internal$_current = null;
@@ -5501,9 +5528,6 @@
       },
       get$current: function() {
         return this.__internal$_current;
-      },
-      _f$1: function(arg0) {
-        return this._f.call$1(arg0);
       },
       $asIterator: function($S, $T) {
         return [$T];
@@ -5515,10 +5539,7 @@
         return J.get$length$asx(this._source);
       },
       elementAt$1: function(_, index) {
-        return this._f$1(J.elementAt$1$ax(this._source, index));
-      },
-      _f$1: function(arg0) {
-        return this._f.call$1(arg0);
+        return this._f.call$1(J.elementAt$1$ax(this._source, index));
       },
       $asListIterable: function($S, $T) {
         return [$T];
@@ -5539,16 +5560,14 @@
     WhereIterator: {
       "^": "Iterator;_iterator,_f",
       moveNext$0: function() {
-        for (var t1 = this._iterator; t1.moveNext$0();)
-          if (this._f$1(t1.get$current()) === true)
+        var t1, t2;
+        for (t1 = this._iterator, t2 = this._f; t1.moveNext$0();)
+          if (t2.call$1(t1.get$current()) === true)
             return true;
         return false;
       },
       get$current: function() {
         return this._iterator.get$current();
-      },
-      _f$1: function(arg0) {
-        return this._f.call$1(arg0);
       }
     },
     FixedLengthListMixin: {
@@ -5762,10 +5781,11 @@
     },
     Timer_Timer: function(duration, callback) {
       var t1 = $.Zone__current;
-      if (t1 === C.C__RootZone)
+      if (t1 === C.C__RootZone) {
+        t1.toString;
         return P.Timer__createTimer(duration, callback);
-      t1.toString;
-      return P.Timer__createTimer(duration, callback);
+      }
+      return P.Timer__createTimer(duration, t1.bindCallback$2$runGuarded(callback, true));
     },
     Timer__createTimer: function(duration, callback) {
       var milliseconds = C.JSInt_methods._tdivFast$1(duration._duration, 1000);
@@ -5864,19 +5884,19 @@
       "^": "Closure:0;bodyFunction",
       call$1: [function(result) {
         return this.bodyFunction.call$2(0, result);
-      }, null, null, 2, 0, null, 16, "call"]
+      }, null, null, 2, 0, null, 18, "call"]
     },
     _awaitOnObject_closure0: {
       "^": "Closure:17;bodyFunction",
       call$2: [function(error, stackTrace) {
         this.bodyFunction.call$2(1, new H.ExceptionAndStackTrace(error, stackTrace));
-      }, null, null, 4, 0, null, 5, 4, "call"]
+      }, null, null, 4, 0, null, 4, 5, "call"]
     },
     _wrapJsFunctionForAsync_closure: {
       "^": "Closure:18;$protected",
       call$2: [function(errorCode, result) {
         this.$protected(errorCode, result);
-      }, null, null, 4, 0, null, 28, 16, "call"]
+      }, null, null, 4, 0, null, 29, 18, "call"]
     },
     Future: {
       "^": "Object;"
@@ -6081,7 +6101,7 @@
         this._state = 8;
         this._resultOrListeners = new P.AsyncError(error, stackTrace);
         P._Future__propagateToListeners(this, listeners);
-      }, null, "get$_completeError", 2, 2, null, 0, 5, 4],
+      }, null, "get$_completeError", 2, 2, null, 0, 4, 5],
       _asyncComplete$1: function(value) {
         var t1;
         if (!!J.getInterceptor(value).$isFuture) {
@@ -6247,7 +6267,7 @@
         this.target._completeError$2(error, stackTrace);
       }, function(error) {
         return this.call$2(error, null);
-      }, "call$1", null, null, null, 2, 2, null, 0, 5, 4, "call"]
+      }, "call$1", null, null, null, 2, 2, null, 0, 4, 5, "call"]
     },
     _Future__chainForeignFuture_closure1: {
       "^": "Closure:1;target,e,s",
@@ -6391,14 +6411,14 @@
           hasNext._complete$1(true);
           return;
         }
-        J.pause$0$x(this._subscription);
+        this._subscription.pause$0(0);
         this._futureOrPrefetch = data;
         this._state = 3;
       }, "call$1", "get$_onData", 2, 0, function() {
         return H.computeSignature(function(T) {
           return {func: 1, v: true, args: [T]};
         }, this.$receiver, "_StreamIteratorImpl");
-      }, 30],
+      }, 39],
       _onError$2: [function(error, stackTrace) {
         var hasNext;
         if (this._state === 2) {
@@ -6407,12 +6427,12 @@
           hasNext._completeError$2(error, stackTrace);
           return;
         }
-        J.pause$0$x(this._subscription);
+        this._subscription.pause$0(0);
         this._futureOrPrefetch = new P.AsyncError(error, stackTrace);
         this._state = 4;
       }, function(error) {
         return this._onError$2(error, null);
-      }, "_onError$1", "call$2", "call$1", "get$_onError", 2, 2, 20, 0, 5, 4],
+      }, "_onError$1", "call$2", "call$1", "get$_onError", 2, 2, 20, 0, 4, 5],
       _onDone$0: [function() {
         if (this._state === 2) {
           var hasNext = this._futureOrPrefetch;
@@ -6420,7 +6440,7 @@
           hasNext._complete$1(false);
           return;
         }
-        J.pause$0$x(this._subscription);
+        this._subscription.pause$0(0);
         this._futureOrPrefetch = null;
         this._state = 5;
       }, "call$0", "get$_onDone", 0, 0, 3]
@@ -7379,7 +7399,7 @@
         }
       }, function($receiver, start, end, iterable) {
         return this.setRange$4($receiver, start, end, iterable, 0);
-      }, "setRange$3", null, null, "get$setRange", 6, 2, null, 39],
+      }, "setRange$3", null, null, "get$setRange", 6, 2, null, 32],
       indexOf$2: function(receiver, element, startIndex) {
         var i;
         if (startIndex >= this.get$length(receiver))
@@ -7809,7 +7829,7 @@
     },
     _defaultToEncodable: [function(object) {
       return object.toJson$0();
-    }, "call$1", "convert0___defaultToEncodable$closure", 2, 0, 0, 17],
+    }, "call$1", "convert0___defaultToEncodable$closure", 2, 0, 0, 15],
     _JsonMap: {
       "^": "Object;_original,_processed,_convert0$_data",
       $index: function(_, key) {
@@ -7964,7 +7984,7 @@
       "^": "Closure:0;$this",
       call$1: [function(each) {
         return this.$this.$index(0, each);
-      }, null, null, 2, 0, null, 13, "call"]
+      }, null, null, 2, 0, null, 17, "call"]
     },
     _JsonMapKeyIterable: {
       "^": "ListIterable;_parent",
@@ -8138,7 +8158,7 @@
           return;
         this._checkCycle$1(object);
         try {
-          customJson = this._toEncodable$1(object);
+          customJson = this._toEncodable.call$1(object);
           if (!this.writeJsonValue$1(customJson))
             throw H.wrapException(new P.JsonUnsupportedObjectError(object, null));
           t1 = this._seen;
@@ -8236,9 +8256,6 @@
         }
         t1._contents += "}";
         return true;
-      },
-      _toEncodable$1: function(arg0) {
-        return this._toEncodable.call$1(arg0);
       }
     },
     _JsonStringifier_writeMap_closure: {
@@ -8987,7 +9004,7 @@
     },
     HtmlElement: {
       "^": "Element;",
-      "%": "HTMLAppletElement|HTMLBRElement|HTMLCanvasElement|HTMLContentElement|HTMLDListElement|HTMLDataListElement|HTMLDetailsElement|HTMLDialogElement|HTMLDirectoryElement|HTMLDivElement|HTMLFontElement|HTMLFrameElement|HTMLHRElement|HTMLHeadElement|HTMLHeadingElement|HTMLHtmlElement|HTMLLabelElement|HTMLLegendElement|HTMLLinkElement|HTMLMarqueeElement|HTMLMenuElement|HTMLMenuItemElement|HTMLModElement|HTMLOListElement|HTMLOptGroupElement|HTMLParagraphElement|HTMLPictureElement|HTMLPreElement|HTMLQuoteElement|HTMLScriptElement|HTMLShadowElement|HTMLSourceElement|HTMLSpanElement|HTMLStyleElement|HTMLTableCaptionElement|HTMLTableCellElement|HTMLTableColElement|HTMLTableDataCellElement|HTMLTableElement|HTMLTableHeaderCellElement|HTMLTableRowElement|HTMLTableSectionElement|HTMLTitleElement|HTMLTrackElement|HTMLUListElement|HTMLUnknownElement|PluginPlaceholderElement;HTMLElement;HtmlElement_PolymerMixin|HtmlElement_PolymerMixin_PolymerBase|PolymerElement|CoffeeChooser|PolymerElement_IronFormElementBehavior|CoffeeOrder|CoffeeCount|CoffeeOrderTotal|PolymerElement_IronResizableBehavior|CoffeeShop|DesktopView|MobileDesktop|MobileView|HtmlElement_CustomElementProxyMixin|HtmlElement_CustomElementProxyMixin_PolymerBase|ArraySelector|HtmlElement_CustomElementProxyMixin0|HtmlElement_CustomElementProxyMixin_PolymerBase0|IronAjax|HtmlElement_CustomElementProxyMixin1|HtmlElement_CustomElementProxyMixin_PolymerBase1|IronRequest|HtmlElement_CustomElementProxyMixin2|HtmlElement_CustomElementProxyMixin_PolymerBase2|IronIcon|HtmlElement_CustomElementProxyMixin3|HtmlElement_CustomElementProxyMixin_PolymerBase3|IronMediaQuery|HtmlElement_CustomElementProxyMixin4|HtmlElement_CustomElementProxyMixin_PolymerBase4|IronMeta|HtmlElement_CustomElementProxyMixin5|HtmlElement_CustomElementProxyMixin_PolymerBase5|IronMetaQuery|HtmlElement_CustomElementProxyMixin6|HtmlElement_CustomElementProxyMixin_PolymerBase6|HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior_IronSelectableBehavior|IronPages|HtmlElement_CustomElementProxyMixin7|HtmlElement_CustomElementProxyMixin_PolymerBase7|HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior_IronMultiSelectableBehavior|IronSelector|HtmlElement_CustomElementProxyMixin8|HtmlElement_CustomElementProxyMixin_PolymerBase8|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState_PaperRippleBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState_PaperRippleBehavior_PaperButtonBehavior|PaperButton|HtmlElement_CustomElementProxyMixin9|HtmlElement_CustomElementProxyMixin_PolymerBase9|PaperCard|HtmlElement_CustomElementProxyMixin10|HtmlElement_CustomElementProxyMixin_PolymerBase10|PaperMaterial|HtmlElement_CustomElementProxyMixin11|HtmlElement_CustomElementProxyMixin_PolymerBase11|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior0|PaperRipple"
+      "%": "HTMLAppletElement|HTMLBRElement|HTMLCanvasElement|HTMLContentElement|HTMLDListElement|HTMLDataListElement|HTMLDetailsElement|HTMLDialogElement|HTMLDirectoryElement|HTMLDivElement|HTMLFontElement|HTMLFrameElement|HTMLHRElement|HTMLHeadElement|HTMLHeadingElement|HTMLHtmlElement|HTMLLabelElement|HTMLLegendElement|HTMLLinkElement|HTMLMarqueeElement|HTMLMenuElement|HTMLMenuItemElement|HTMLModElement|HTMLOListElement|HTMLOptGroupElement|HTMLParagraphElement|HTMLPictureElement|HTMLPreElement|HTMLQuoteElement|HTMLScriptElement|HTMLShadowElement|HTMLSourceElement|HTMLSpanElement|HTMLStyleElement|HTMLTableCaptionElement|HTMLTableCellElement|HTMLTableColElement|HTMLTableDataCellElement|HTMLTableElement|HTMLTableHeaderCellElement|HTMLTableRowElement|HTMLTableSectionElement|HTMLTitleElement|HTMLTrackElement|HTMLUListElement|HTMLUnknownElement|PluginPlaceholderElement;HTMLElement;HtmlElement_PolymerMixin|HtmlElement_PolymerMixin_PolymerBase|PolymerElement|CoffeeChooser|PolymerElement_IronFormElementBehavior|CoffeeOrder|CoffeeCount|CoffeeOrderTotal|PolymerElement_IronResizableBehavior|CoffeeShop|DesktopView|MobileDesktop|MobileView|HtmlElement_CustomElementProxyMixin|HtmlElement_CustomElementProxyMixin_PolymerBase|ArraySelector|HtmlElement_CustomElementProxyMixin0|HtmlElement_CustomElementProxyMixin_PolymerBase0|IronAjax|HtmlElement_CustomElementProxyMixin1|HtmlElement_CustomElementProxyMixin_PolymerBase1|IronRequest|HtmlElement_CustomElementProxyMixin2|HtmlElement_CustomElementProxyMixin_PolymerBase2|IronIcon|HtmlElement_CustomElementProxyMixin3|HtmlElement_CustomElementProxyMixin_PolymerBase3|IronImage|HtmlElement_CustomElementProxyMixin4|HtmlElement_CustomElementProxyMixin_PolymerBase4|IronMediaQuery|HtmlElement_CustomElementProxyMixin5|HtmlElement_CustomElementProxyMixin_PolymerBase5|IronMeta|HtmlElement_CustomElementProxyMixin6|HtmlElement_CustomElementProxyMixin_PolymerBase6|IronMetaQuery|HtmlElement_CustomElementProxyMixin7|HtmlElement_CustomElementProxyMixin_PolymerBase7|HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior_IronSelectableBehavior|IronPages|HtmlElement_CustomElementProxyMixin8|HtmlElement_CustomElementProxyMixin_PolymerBase8|HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior_IronMultiSelectableBehavior|IronSelector|HtmlElement_CustomElementProxyMixin9|HtmlElement_CustomElementProxyMixin_PolymerBase9|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState_PaperRippleBehavior|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState_PaperRippleBehavior_PaperButtonBehavior|PaperButton|HtmlElement_CustomElementProxyMixin10|HtmlElement_CustomElementProxyMixin_PolymerBase10|PaperCard|HtmlElement_CustomElementProxyMixin11|HtmlElement_CustomElementProxyMixin_PolymerBase11|PaperMaterial|HtmlElement_CustomElementProxyMixin12|HtmlElement_CustomElementProxyMixin_PolymerBase12|HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior0|PaperRipple"
     },
     AnchorElement: {
       "^": "HtmlElement;target=",
@@ -9108,7 +9125,7 @@
       detached$0: [function(receiver) {
       }, "call$0", "get$detached", 0, 0, 3],
       attributeChanged$3: [function(receiver, $name, oldValue, newValue) {
-      }, "call$3", "get$attributeChanged", 6, 0, 22, 32, 33, 12],
+      }, "call$3", "get$attributeChanged", 6, 0, 22, 33, 46, 12],
       toString$0: function(receiver) {
         return receiver.localName;
       },
@@ -9201,9 +9218,6 @@
     },
     MediaElement: {
       "^": "HtmlElement;error=",
-      pause$0: function(receiver) {
-        return receiver.pause();
-      },
       "%": "HTMLAudioElement|HTMLMediaElement|HTMLVideoElement"
     },
     MediaStream: {
@@ -9759,11 +9773,6 @@
     "^": ""
   }], ["dart.dom.web_sql", "dart:web_sql",, P, {
     "^": ""
-  }], ["dart.isolate", "dart:isolate",, P, {
-    "^": "",
-    Capability: {
-      "^": "Object;"
-    }
   }], ["dart.js", "dart:js",, P, {
     "^": "",
     _callDartFunction: [function(callback, captureThis, $self, $arguments) {
@@ -9775,7 +9784,7 @@
       }
       dartArgs = P.List_List$from(J.map$1$ax($arguments, P.js___convertToDart$closure()), true, null);
       return P._convertToJS(H.Primitives_applyFunctionWithPositionalArguments(callback, dartArgs));
-    }, null, null, 8, 0, null, 35, 36, 37, 11],
+    }, null, null, 8, 0, null, 36, 37, 38, 11],
     _defineProperty: function(o, $name, value) {
       var exception;
       try {
@@ -9807,7 +9816,7 @@
       if (!!t1.$isFunction)
         return P._getJsProxy(o, "$dart_jsFunction", new P._convertToJS_closure());
       return P._getJsProxy(o, "_$dart_jsObject", new P._convertToJS_closure0($.$get$_dartProxyCtor()));
-    }, "call$1", "js___convertToJS$closure", 2, 0, 0, 6],
+    }, "call$1", "js___convertToJS$closure", 2, 0, 0, 10],
     _getJsProxy: function(o, propertyName, createProxy) {
       var jsProxy = P._getOwnProperty(o, propertyName);
       if (jsProxy == null) {
@@ -9838,7 +9847,7 @@
         else
           return P._wrapToDart(o);
       }
-    }, "call$1", "js___convertToDart$closure", 2, 0, 30, 6],
+    }, "call$1", "js___convertToDart$closure", 2, 0, 30, 10],
     _wrapToDart: function(o) {
       if (typeof o == "function")
         return P._getDartProxy(o, $.$get$DART_CLOSURE_PROPERTY_NAME(), new P._wrapToDart_closure());
@@ -9955,7 +9964,7 @@
           return convertedList;
         } else
           return P._convertToJS(o);
-      }, null, null, 2, 0, null, 6, "call"]
+      }, null, null, 2, 0, null, 10, "call"]
     },
     JsFunction: {
       "^": "JsObject;_jsObject",
@@ -10532,7 +10541,7 @@
       "^": "Closure:0;",
       call$1: [function(i) {
         return new A.loadInitializers__closure(i);
-      }, null, null, 2, 0, null, 14, "call"]
+      }, null, null, 2, 0, null, 13, "call"]
     },
     loadInitializers__closure: {
       "^": "Closure:1;i",
@@ -10622,7 +10631,7 @@
                 throw exception;
           }
         }
-      }, null, null, 6, 0, null, 40, 41, 12, "call"]
+      }, null, null, 6, 0, null, 41, 42, 12, "call"]
     }
   }], ["polymer.lib.polymer_micro", "package:polymer/polymer_micro.dart",, N, {
     "^": "",
@@ -10693,26 +10702,26 @@
       "^": "Closure:0;name",
       call$1: [function(dartInstance) {
         return E.convertToJs(Q._InstanceMirrorImpl$(dartInstance, C.JsProxyReflectable_eZ8).invokeGetter$1(this.name));
-      }, null, null, 2, 0, null, 8, "call"]
+      }, null, null, 2, 0, null, 6, "call"]
     },
     _buildJsConstructorForType__closure0: {
       "^": "Closure:2;name",
       call$2: [function(dartInstance, value) {
         Q._InstanceMirrorImpl$(dartInstance, C.JsProxyReflectable_eZ8).invokeSetter$2(this.name, E.convertToDart(value));
-      }, null, null, 4, 0, null, 8, 9, "call"]
+      }, null, null, 4, 0, null, 6, 9, "call"]
     },
     _buildJsConstructorForType__closure1: {
       "^": "Closure:2;name",
       call$2: [function(dartInstance, $arguments) {
         var newArgs = J.map$1$ax($arguments, new B._buildJsConstructorForType___closure()).toList$0(0);
         return E.convertToJs(Q._InstanceMirrorImpl$(dartInstance, C.JsProxyReflectable_eZ8).invoke$2(this.name, newArgs));
-      }, null, null, 4, 0, null, 8, 11, "call"]
+      }, null, null, 4, 0, null, 6, 11, "call"]
     },
     _buildJsConstructorForType___closure: {
       "^": "Closure:0;",
       call$1: [function(arg) {
         return E.convertToDart(arg);
-      }, null, null, 2, 0, null, 43, "call"]
+      }, null, null, 2, 0, null, 44, "call"]
     }
   }], ["polymer.lib.src.common.observe", "package:polymer/src/common/observe.dart",, E, {
     "^": "",
@@ -10943,10 +10952,13 @@
     HtmlElement_CustomElementProxyMixin_PolymerBase2: {
       "^": "HtmlElement_CustomElementProxyMixin2+PolymerBase;"
     }
-  }], ["polymer_elements.lib.src.iron_media_query.iron_media_query", "package:polymer_elements/iron_media_query.dart",, Q, {
+  }], ["polymer_elements.lib.src.iron_image.iron_image", "package:polymer_elements/iron_image.dart",, A, {
     "^": "",
-    IronMediaQuery: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase3;CustomElementProxyMixin__proxy"
+    IronImage: {
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase3;CustomElementProxyMixin__proxy",
+      get$error: function(receiver) {
+        return J.$index$asx(this.get$jsElement(receiver), "error");
+      }
     },
     HtmlElement_CustomElementProxyMixin3: {
       "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
@@ -10954,31 +10966,20 @@
     HtmlElement_CustomElementProxyMixin_PolymerBase3: {
       "^": "HtmlElement_CustomElementProxyMixin3+PolymerBase;"
     }
-  }], ["polymer_elements.lib.src.iron_meta.iron_meta", "package:polymer_elements/iron_meta.dart",, F, {
+  }], ["polymer_elements.lib.src.iron_media_query.iron_media_query", "package:polymer_elements/iron_media_query.dart",, Q, {
     "^": "",
-    IronMeta: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase4;CustomElementProxyMixin__proxy",
-      get$value: function(receiver) {
-        return J.$index$asx(this.get$jsElement(receiver), "value");
-      },
-      set$value: function(receiver, value) {
-        var t1, t2;
-        t1 = this.get$jsElement(receiver);
-        t2 = J.getInterceptor(value);
-        if (!t2.$isMap)
-          t2 = !!t2.$isIterable && !t2.$isJsArray;
-        else
-          t2 = true;
-        J.$indexSet$ax(t1, "value", t2 ? P.JsObject_JsObject$jsify(value) : value);
-      }
+    IronMediaQuery: {
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase4;CustomElementProxyMixin__proxy"
     },
     HtmlElement_CustomElementProxyMixin4: {
       "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase4: {
       "^": "HtmlElement_CustomElementProxyMixin4+PolymerBase;"
-    },
-    IronMetaQuery: {
+    }
+  }], ["polymer_elements.lib.src.iron_meta.iron_meta", "package:polymer_elements/iron_meta.dart",, F, {
+    "^": "",
+    IronMeta: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase5;CustomElementProxyMixin__proxy",
       get$value: function(receiver) {
         return J.$index$asx(this.get$jsElement(receiver), "value");
@@ -10999,20 +11000,42 @@
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase5: {
       "^": "HtmlElement_CustomElementProxyMixin5+PolymerBase;"
-    }
-  }], ["polymer_elements.lib.src.iron_pages.iron_pages", "package:polymer_elements/iron_pages.dart",, U, {
-    "^": "",
-    IronPages: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior_IronSelectableBehavior;CustomElementProxyMixin__proxy"
+    },
+    IronMetaQuery: {
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase6;CustomElementProxyMixin__proxy",
+      get$value: function(receiver) {
+        return J.$index$asx(this.get$jsElement(receiver), "value");
+      },
+      set$value: function(receiver, value) {
+        var t1, t2;
+        t1 = this.get$jsElement(receiver);
+        t2 = J.getInterceptor(value);
+        if (!t2.$isMap)
+          t2 = !!t2.$isIterable && !t2.$isJsArray;
+        else
+          t2 = true;
+        J.$indexSet$ax(t1, "value", t2 ? P.JsObject_JsObject$jsify(value) : value);
+      }
     },
     HtmlElement_CustomElementProxyMixin6: {
       "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase6: {
       "^": "HtmlElement_CustomElementProxyMixin6+PolymerBase;"
+    }
+  }], ["polymer_elements.lib.src.iron_pages.iron_pages", "package:polymer_elements/iron_pages.dart",, U, {
+    "^": "",
+    IronPages: {
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior_IronSelectableBehavior;CustomElementProxyMixin__proxy"
+    },
+    HtmlElement_CustomElementProxyMixin7: {
+      "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
+    },
+    HtmlElement_CustomElementProxyMixin_PolymerBase7: {
+      "^": "HtmlElement_CustomElementProxyMixin7+PolymerBase;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase6+IronResizableBehavior;"
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase7+IronResizableBehavior;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior_IronSelectableBehavior: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase_IronResizableBehavior+IronSelectableBehavior;"
@@ -11040,14 +11063,14 @@
     IronSelector: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior_IronMultiSelectableBehavior;CustomElementProxyMixin__proxy"
     },
-    HtmlElement_CustomElementProxyMixin7: {
+    HtmlElement_CustomElementProxyMixin8: {
       "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
     },
-    HtmlElement_CustomElementProxyMixin_PolymerBase7: {
-      "^": "HtmlElement_CustomElementProxyMixin7+PolymerBase;"
+    HtmlElement_CustomElementProxyMixin_PolymerBase8: {
+      "^": "HtmlElement_CustomElementProxyMixin8+PolymerBase;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase7+IronSelectableBehavior;"
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase8+IronSelectableBehavior;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior_IronMultiSelectableBehavior: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase_IronSelectableBehavior+IronMultiSelectableBehavior;"
@@ -11067,14 +11090,14 @@
     PaperButton: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState_IronControlState_PaperRippleBehavior_PaperButtonBehavior;CustomElementProxyMixin__proxy"
     },
-    HtmlElement_CustomElementProxyMixin8: {
+    HtmlElement_CustomElementProxyMixin9: {
       "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
     },
-    HtmlElement_CustomElementProxyMixin_PolymerBase8: {
-      "^": "HtmlElement_CustomElementProxyMixin8+PolymerBase;"
+    HtmlElement_CustomElementProxyMixin_PolymerBase9: {
+      "^": "HtmlElement_CustomElementProxyMixin9+PolymerBase;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase8+IronA11yKeysBehavior;"
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase9+IronA11yKeysBehavior;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior_IronButtonState: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior+IronButtonState;"
@@ -11091,17 +11114,6 @@
   }], ["polymer_elements.lib.src.paper_card.paper_card", "package:polymer_elements/paper_card.dart",, N, {
     "^": "",
     PaperCard: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase9;CustomElementProxyMixin__proxy"
-    },
-    HtmlElement_CustomElementProxyMixin9: {
-      "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
-    },
-    HtmlElement_CustomElementProxyMixin_PolymerBase9: {
-      "^": "HtmlElement_CustomElementProxyMixin9+PolymerBase;"
-    }
-  }], ["polymer_elements.lib.src.paper_material.paper_material", "package:polymer_elements/paper_material.dart",, S, {
-    "^": "",
-    PaperMaterial: {
       "^": "HtmlElement_CustomElementProxyMixin_PolymerBase10;CustomElementProxyMixin__proxy"
     },
     HtmlElement_CustomElementProxyMixin10: {
@@ -11109,6 +11121,17 @@
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase10: {
       "^": "HtmlElement_CustomElementProxyMixin10+PolymerBase;"
+    }
+  }], ["polymer_elements.lib.src.paper_material.paper_material", "package:polymer_elements/paper_material.dart",, S, {
+    "^": "",
+    PaperMaterial: {
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase11;CustomElementProxyMixin__proxy"
+    },
+    HtmlElement_CustomElementProxyMixin11: {
+      "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
+    },
+    HtmlElement_CustomElementProxyMixin_PolymerBase11: {
+      "^": "HtmlElement_CustomElementProxyMixin11+PolymerBase;"
     }
   }], ["polymer_elements.lib.src.paper_ripple.paper_ripple", "package:polymer_elements/paper_ripple.dart",, X, {
     "^": "",
@@ -11118,14 +11141,14 @@
         return J.$index$asx(this.get$jsElement(receiver), "target");
       }
     },
-    HtmlElement_CustomElementProxyMixin11: {
+    HtmlElement_CustomElementProxyMixin12: {
       "^": "HtmlElement+CustomElementProxyMixin;_proxy:CustomElementProxyMixin__proxy%"
     },
-    HtmlElement_CustomElementProxyMixin_PolymerBase11: {
-      "^": "HtmlElement_CustomElementProxyMixin11+PolymerBase;"
+    HtmlElement_CustomElementProxyMixin_PolymerBase12: {
+      "^": "HtmlElement_CustomElementProxyMixin12+PolymerBase;"
     },
     HtmlElement_CustomElementProxyMixin_PolymerBase_IronA11yKeysBehavior0: {
-      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase11+IronA11yKeysBehavior;"
+      "^": "HtmlElement_CustomElementProxyMixin_PolymerBase12+IronA11yKeysBehavior;"
     }
   }], ["polymer_interop.lib.src.convert", "package:polymer_interop/src/convert.dart",, E, {
     "^": "",
@@ -11222,7 +11245,7 @@
         return new F.CustomEventWrapper(jsValue);
       }
       return jsValue;
-    }, "call$1", "convert__convertToDart$closure", 2, 0, 0, 44],
+    }, "call$1", "convert__convertToDart$closure", 2, 0, 0, 45],
     _dartType: function(jsValue) {
       if (jsValue.$eq(0, $.$get$_String()))
         return C.Type_String_k8F;
@@ -11242,7 +11265,7 @@
       "^": "Closure:0;",
       call$1: [function(item) {
         return E.convertToJs(item);
-      }, null, null, 2, 0, null, 10, "call"]
+      }, null, null, 2, 0, null, 8, "call"]
     },
     convertToJs_closure0: {
       "^": "Closure:2;_box_0",
@@ -11254,7 +11277,7 @@
       "^": "Closure:0;",
       call$1: [function(item) {
         return E.convertToDart(item);
-      }, null, null, 2, 0, null, 10, "call"]
+      }, null, null, 2, 0, null, 8, "call"]
     }
   }], ["polymer_interop.src.behavior", "package:polymer_interop/src/behavior.dart",, U, {
     "^": "",
@@ -11307,7 +11330,7 @@
         this.get$jsElement(receiver).callMethod$2("serializeValueToAttribute", [E.convertToJs(value), attribute, node]);
       }, function($receiver, value, attribute) {
         return this.serializeValueToAttribute$3($receiver, value, attribute, null);
-      }, "serializeValueToAttribute$2", "call$3", "call$2", "get$serializeValueToAttribute", 4, 2, 25, 0, 9, 46, 31],
+      }, "serializeValueToAttribute$2", "call$3", "call$2", "get$serializeValueToAttribute", 4, 2, 25, 0, 9, 34, 31],
       $set$2: function(receiver, path, value) {
         return this.get$jsElement(receiver).callMethod$2("set", [path, E.convertToJs(value)]);
       }
@@ -11464,7 +11487,7 @@
         for (t2 = this._typeToClassMirrorCache, t2 = t2.get$values(t2), t2 = t2.get$iterator(t2); t2.moveNext$0();) {
           classMirror = t2.get$current();
           if (classMirror instanceof Q.GenericClassMirrorImpl)
-            if (classMirror._isGenericRuntimeTypeOf$1(instance) === true)
+            if (classMirror._isGenericRuntimeTypeOf.call$1(instance) === true)
               return Q._createInstantiatedGenericClass(classMirror, t1.get$runtimeType(instance));
         }
         return;
@@ -11651,9 +11674,6 @@
       },
       toString$0: function(_) {
         return "GenericClassMirrorImpl(" + this.qualifiedName + ")";
-      },
-      _isGenericRuntimeTypeOf$1: function(arg0) {
-        return this._isGenericRuntimeTypeOf.call$1(arg0);
       },
       static: {
         GenericClassMirrorImpl$: function(simpleName, qualifiedName, descriptor, classIndex, reflector, declarationIndices, instanceMemberIndices, staticMemberIndices, superclassIndex, getters, setters, constructors, ownerIndex, mixinIndex, superinterfaceIndices, metadata, _isGenericRuntimeTypeOf, _typeVariableIndices, _dynamicReflectedTypeIndex) {
@@ -12789,9 +12809,6 @@
   J.map$1$ax = function(receiver, a0) {
     return J.getInterceptor$ax(receiver).map$1(receiver, a0);
   };
-  J.pause$0$x = function(receiver) {
-    return J.getInterceptor$x(receiver).pause$0(receiver);
-  };
   J.preventDefault$0$x = function(receiver) {
     return J.getInterceptor$x(receiver).preventDefault$0(receiver);
   };
@@ -13162,6 +13179,7 @@
   C.Type_IronFormElementBehavior_IK6 = H.createRuntimeType("IronFormElementBehavior");
   C.Type_IronForm_nbT = H.createRuntimeType("IronForm");
   C.Type_IronIcon_oSr = H.createRuntimeType("IronIcon");
+  C.Type_IronImage_k5o = H.createRuntimeType("IronImage");
   C.Type_IronMediaQuery_l2Z = H.createRuntimeType("IronMediaQuery");
   C.Type_IronMetaQuery_yuB = H.createRuntimeType("IronMetaQuery");
   C.Type_IronMeta_hin = H.createRuntimeType("IronMeta");
@@ -13356,7 +13374,7 @@
   }, "_data"]);
   Isolate = Isolate.$finishIsolateConstructor(Isolate);
   $ = new Isolate();
-  init.metadata = [null, "_", "__", "e", "stackTrace", "error", "o", "coffee", "dartInstance", "value", "item", "arguments", "newValue", "each", "i", "invocation", "result", "object", "x", "c", "key", "coffeeVal", "totalShown", "detail", "d", "sender", "closure", "isolate", "errorCode", "event", "data", "node", "name", "oldValue", "arg4", "callback", "captureThis", "self", "arg3", 0, "instance", "path", "arg2", "arg", "jsValue", "numberOfArguments", "attribute", "arg1"];
+  init.metadata = [null, "_", "__", "e", "error", "stackTrace", "dartInstance", "coffee", "item", "value", "o", "arguments", "newValue", "i", "invocation", "object", "x", "each", "result", "d", "key", "coffeeVal", "totalShown", "detail", "event", "isolate", "closure", "numberOfArguments", "sender", "errorCode", "arg2", "node", 0, "name", "attribute", "c", "callback", "captureThis", "self", "data", "arg3", "instance", "path", "arg4", "arg", "jsValue", "oldValue", "arg1"];
   init.types = [{func: 1, args: [,]}, {func: 1}, {func: 1, args: [,,]}, {func: 1, v: true}, {func: 1, v: true, opt: [,,]}, {func: 1, args: [P.String]}, {func: 1, v: true, args: [,,]}, {func: 1, v: true, args: [{func: 1, v: true}]}, {func: 1, ret: P.String, args: [P.$int]}, {func: 1, args: [P.String,,]}, {func: 1, args: [, P.String]}, {func: 1, v: true, args: [W.CustomEvent,,]}, {func: 1, ret: P.bool, args: [,]}, {func: 1, args: [P.$double,,]}, {func: 1, v: true, args: [F.CustomEventWrapper,,]}, {func: 1, args: [X.Coffee]}, {func: 1, args: [{func: 1, v: true}]}, {func: 1, args: [, P.StackTrace]}, {func: 1, args: [P.$int,,]}, {func: 1, args: [,], opt: [,]}, {func: 1, v: true, args: [P.Object], opt: [P.StackTrace]}, {func: 1, args: [P.Symbol,,]}, {func: 1, v: true, args: [P.String, P.String, P.String]}, {func: 1, args: [,,,]}, {func: 1, args: [P.String, O.DeclarationMirror]}, {func: 1, v: true, args: [, P.String], opt: [W.Element]}, {func: 1, args: [T.ReflectCapability]}, {func: 1, args: [O.TypeMirror]}, {func: 1, v: true, args: [T.ReflectCapability]}, {func: 1, ret: P.$int, args: [P.Comparable, P.Comparable]}, {func: 1, ret: P.Object, args: [,]}];
   function convertToFastObject(properties) {
     function MyClass() {
