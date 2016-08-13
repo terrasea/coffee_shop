@@ -1,0 +1,61 @@
+<dom-module id="coffee-chooser">
+    <style>
+
+
+
+        paper-card {
+            --paper-card-header-color: white;
+            --paper-card-header-image: {
+                width: 115px;
+                height: 115px;
+            };
+            --paper-card-header-text: {
+              font-size: small;
+            };
+            background-color: gray;
+        }
+
+        paper-button {
+            margin: 0px;
+            padding: 0px;
+        }
+
+        paper-card > div > div.title-text {
+            /*color: white;*/
+        }
+
+
+
+        /*paper-button.iron-selected paper-card {*/
+            /*border-left-color: #f00;*/
+            /*border-left-style: solid;*/
+            /*border-left-width: 3px;*/
+            /*border-right-color: #f00;*/
+            /*border-right-style: solid;*/
+            /*border-right-width: 3px;*/
+            /*border-bottom-color: #f00;*/
+            /*border-bottom-style: solid;*/
+            /*border-bottom-width: 3px;*/
+            /*border-top-color: #f00;*/
+            /*border-top-style: solid;*/
+            /*border-top-width: 3px;*/
+            /*background-color: #000;*/
+        /*}*/
+
+        .white {
+            color: white;
+        }
+
+    </style>
+    <template>
+        <template is="dom-repeat" items="{{coffeeVals}}" as="coffee">
+            <paper-button alt="{{coffee.name}}" id="{{coffee.id}}" on-tap="selectCoffee" on-track="removeCoffee">
+                <paper-card heading="{{coffee.name}}" image="images/{{coffee.image}}">
+                    <div class="white">&pound;<product>{{coffee.price}}</product></div>
+                    <coffee-count id="count-{{coffee.id}}" count="{{coffee.count}}"></coffee-count>
+                </paper-card>
+            </paper-button>
+        </template>
+    </template>
+    <script type="application/dart" src="coffee_chooser.dart"></script>
+</dom-module>

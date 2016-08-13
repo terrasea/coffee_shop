@@ -1,0 +1,15 @@
+<dom-module id="desktop-view">
+    <style>
+        ::content coffee-order-total {
+            font-size: large;
+        }
+    </style>
+    <template>
+        <content select="coffee-chooser"></content>
+        <content select="form"></content>
+        <content select="coffee-order-total"></content>
+        <content select="#place"></content>
+        <content select="#cancel"></content>
+    </template>
+    <script type="application/dart" src="desktop_view.dart"></script>
+</dom-module>
