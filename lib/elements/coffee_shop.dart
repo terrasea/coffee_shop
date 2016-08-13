@@ -14,7 +14,6 @@ import 'package:polymer_elements/paper_button.dart';
 import 'package:polymer_elements/iron_media_query.dart';
 import 'package:polymer_elements/iron_resizable_behavior.dart';
 
-
 import 'package:coffee_shop/elements/coffee_chooser.dart';
 import 'package:coffee_shop/elements/coffee_order.dart';
 import 'package:coffee_shop/elements/coffee_order_total.dart';
@@ -24,12 +23,9 @@ import 'package:coffee_shop/coffees.dart';
 import 'package:coffee_shop/order.dart';
 
 @PolymerRegister('coffee-shop')
-class CoffeeShop extends PolymerElement with   IronResizableBehavior {
+class CoffeeShop extends PolymerElement with IronResizableBehavior {
   Order _order = new Order();
-  @Property(
-      reflectToAttribute: true,
-      notify: true
-  )
+  @Property(reflectToAttribute: true, notify: true)
   Order get order => _order;
   @reflectable
   void set order(val) {
@@ -38,10 +34,7 @@ class CoffeeShop extends PolymerElement with   IronResizableBehavior {
   }
 
   List<OrderCoffee> _coffees = [];
-  @Property(
-      reflectToAttribute: true,
-      notify: true
-  )
+  @Property(reflectToAttribute: true, notify: true)
   List<OrderCoffee> get coffees => _coffees;
   @reflectable
   void set coffees(val) {
@@ -49,12 +42,8 @@ class CoffeeShop extends PolymerElement with   IronResizableBehavior {
     notifyPath('coffees', coffees);
   }
 
-
   String _total;
-  @Property(
-    reflectToAttribute: true,
-    notify: true
-  )
+  @Property(reflectToAttribute: true, notify: true)
   String get total => _total;
   @reflectable
   void set total(val) {
@@ -63,10 +52,7 @@ class CoffeeShop extends PolymerElement with   IronResizableBehavior {
   }
 
   bool _showForm = false;
-  @Property(
-    reflectToAttribute: true,
-    notify: true
-  )
+  @Property(reflectToAttribute: true, notify: true)
   bool get showForm => _showForm;
   @reflectable
   void set showForm(val) {
@@ -75,9 +61,7 @@ class CoffeeShop extends PolymerElement with   IronResizableBehavior {
   }
 
   bool _reset = false;
-  @Property(
-    notify: true
-  )
+  @Property(notify: true)
   bool get reset => _reset;
   @reflectable
   void set reset(val) {
@@ -85,12 +69,8 @@ class CoffeeShop extends PolymerElement with   IronResizableBehavior {
     notifyPath('reset', reset);
   }
 
-
   bool _hasOrder = false;
-  @Property(
-    reflectToAttribute: true,
-    notify: true
-  )
+  @Property(reflectToAttribute: true, notify: true)
   bool get hasOrder => _hasOrder;
   @reflectable
   void set hasOrder(val) {
@@ -98,19 +78,14 @@ class CoffeeShop extends PolymerElement with   IronResizableBehavior {
     notifyPath('hasOrder', hasOrder);
   }
 
-
   bool _phone = false;
-  @Property(
-    reflectToAttribute: true,
-    notify: true
-  )
+  @Property(reflectToAttribute: true, notify: true)
   bool get phone => _phone;
   @reflectable
   void set phone(val) {
     _phone = val;
     notifyPath('phone', phone);
   }
-
 
   CoffeeShop.created() : super.created();
   factory CoffeeShop() => document.createElement('coffee-shop');
@@ -127,7 +102,6 @@ class CoffeeShop extends PolymerElement with   IronResizableBehavior {
     this.coffees = _parseToOrderCoffees(order.coffees);
   }
 
-
   @reflectable
   void removeCoffee(e, coffee) {
     coffees.clear();
@@ -138,18 +112,24 @@ class CoffeeShop extends PolymerElement with   IronResizableBehavior {
   @reflectable
   void preprocessOrder(CustomEventWrapper e, d) {
     print(((e.currentTarget as IronForm).request as IronAjax));
-    js.JsObject obj = ((e.currentTarget as IronForm).serialize() as js.JsObject);
-//    print();
-//    print();
-    var coffeeOrder = JSON.decode(JSON.decode(js.context['JSON'].callMethod('stringify', [obj]))['order']);
-    print(coffeeOrder);
+    js.JsObject obj =
+        ((e.currentTarget as IronForm).serialize() as js.JsObject);
+
+    List coffeeOrder = JSON
+        .decode(JSON.decode(js.context['JSON'].callMethod('stringify', [obj]))[
+            'order'])
+        .map((item) => JSON.decode(item))
+        .toList();
+
+    window.alert(JSON.encode(coffeeOrder));
     e.preventDefault();
   }
 
   List<OrderCoffee> _parseToOrderCoffees(List<Coffee> val) {
     Map map = {};
     val.forEach((Coffee coffee) {
-      OrderCoffee item = map.putIfAbsent(coffee.name, () => new OrderCoffee(coffee, 0));
+      OrderCoffee item =
+          map.putIfAbsent(coffee.name, () => new OrderCoffee(coffee, 0));
       item.quantity++;
     });
     return map.values.toList()
